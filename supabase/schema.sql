@@ -8,6 +8,7 @@ create table if not exists public.habits (
   category text not null,
   frequency_per_week integer not null,
   selected_days text[] null,
+  recurrence jsonb null,
   xp_reward integer not null default 20,
   created_at timestamptz not null default now()
 );

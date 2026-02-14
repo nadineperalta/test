@@ -2,8 +2,14 @@
 
 import { useState } from "react";
 import type { Habit } from "@/types/database";
+import { formatRecurrence } from "@/types/recurrence";
 
 type CompleteHabitFn = (habitId: string) => Promise<{ error: string | null }>;
+
+function recurrenceDisplay(habit: Habit): string {
+  if (habit.recurrence) return formatRecurrence(habit.recurrence);
+  return `${habit.frequency_per_week}x per week${habit.selected_days?.length ? ` · ${habit.selected_days.join(", ")}` : ""}`;
+}
 
 export function HabitList({
   habits,
@@ -30,10 +36,7 @@ export function HabitList({
           <div>
             <p className="font-medium">{habit.name}</p>
             <p className="text-sm text-gray-600">
-              {habit.category} · {habit.frequency_per_week}x per week
-              {habit.selected_days && habit.selected_days.length > 0 && (
-                <> · {habit.selected_days.join(", ")}</>
-              )}
+              {habit.category} · {recurrenceDisplay(habit)}
             </p>
           </div>
           <CompleteButton

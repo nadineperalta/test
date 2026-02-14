@@ -2,22 +2,28 @@
 
 import { createSupabaseClient } from "@/lib/supabase";
 import type { HabitInsert } from "@/types/database";
+import type { Recurrence } from "@/types/recurrence";
 import { revalidatePath } from "next/cache";
 
 export async function createHabit(formData: FormData) {
   const supabase = createSupabaseClient();
   const name = formData.get("name") as string;
   const category = formData.get("category") as string;
-  const frequencyPerWeek = Number(formData.get("frequency_per_week"));
-  const selectedDaysArr = formData.getAll("selected_days") as string[];
-  const selectedDays =
-    selectedDaysArr.length > 0 ? selectedDaysArr : null;
+  const recurrenceRaw = formData.get("recurrence") as string | null;
+  let recurrence: Recurrence | null = null;
+  if (recurrenceRaw) {
+    try {
+      recurrence = JSON.parse(recurrenceRaw) as Recurrence;
+    } catch {
+      recurrence = { type: "weekly", days: [1, 2, 3, 4, 5], interval: 1 };
+    }
+  }
 
   const insert: HabitInsert = {
     name: name.trim(),
     category,
-    frequency_per_week: frequencyPerWeek,
-    selected_days: selectedDays,
+    frequency_per_week: 1,
+    recurrence,
   };
 
   const { error } = await supabase.from("habits").insert(insert as Record<string, unknown>);

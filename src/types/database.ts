@@ -1,3 +1,5 @@
+import type { Recurrence } from "./recurrence";
+
 export type Json =
   | string
   | number
@@ -16,6 +18,7 @@ export interface Database {
           category: string;
           frequency_per_week: number;
           selected_days: string[] | null;
+          recurrence: Recurrence | null;
           xp_reward: number;
           created_at: string;
         };
@@ -23,8 +26,9 @@ export interface Database {
           id?: string;
           name: string;
           category: string;
-          frequency_per_week: number;
+          frequency_per_week?: number;
           selected_days?: string[] | null;
+          recurrence?: Recurrence | null;
           xp_reward?: number;
           created_at?: string;
         };
@@ -34,6 +38,7 @@ export interface Database {
           category?: string;
           frequency_per_week?: number;
           selected_days?: string[] | null;
+          recurrence?: Recurrence | null;
           xp_reward?: number;
           created_at?: string;
         };

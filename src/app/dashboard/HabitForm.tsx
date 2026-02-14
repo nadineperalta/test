@@ -1,6 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import type { Recurrence } from "@/types/recurrence";
+import { RecurrencePicker } from "./RecurrencePicker";
 
 const CATEGORIES = [
   "Skincare",
@@ -11,18 +13,20 @@ const CATEGORIES = [
   "Sleep",
 ] as const;
 
-const WEEKDAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"] as const;
+const DEFAULT_RECURRENCE: Recurrence = { type: "weekly", days: [1, 2, 3, 4, 5], interval: 1 };
 
 type CreateHabitFn = (formData: FormData) => Promise<{ error: string | null }>;
 
 export function HabitForm({ createHabit }: { createHabit: CreateHabitFn }) {
   const [error, setError] = useState<string | null>(null);
   const [isPending, setIsPending] = useState(false);
+  const [recurrence, setRecurrence] = useState<Recurrence>(DEFAULT_RECURRENCE);
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const form = e.currentTarget;
     const formData = new FormData(form);
+    formData.set("recurrence", JSON.stringify(recurrence));
     setError(null);
     setIsPending(true);
     const result = await createHabit(formData);
@@ -66,30 +70,8 @@ export function HabitForm({ createHabit }: { createHabit: CreateHabitFn }) {
         </select>
       </div>
       <div>
-        <label htmlFor="frequency_per_week" className="block text-sm font-medium mb-1">
-          Frequency per week
-        </label>
-        <input
-          id="frequency_per_week"
-          name="frequency_per_week"
-          type="number"
-          min={1}
-          max={7}
-          required
-          defaultValue={1}
-          className="w-full border rounded px-3 py-2 text-sm"
-        />
-      </div>
-      <div>
-        <span className="block text-sm font-medium mb-2">Selected days (optional)</span>
-        <div className="flex flex-wrap gap-2">
-          {WEEKDAYS.map((day) => (
-            <label key={day} className="flex items-center gap-1 text-sm">
-              <input type="checkbox" name="selected_days" value={day} />
-              {day}
-            </label>
-          ))}
-        </div>
+        <span className="block text-sm font-medium mb-2">Repeat</span>
+        <RecurrencePicker value={recurrence} onChange={setRecurrence} />
       </div>
       <div className="flex items-center gap-3">
         <button
