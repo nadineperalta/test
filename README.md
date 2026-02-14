@@ -25,7 +25,8 @@ Get both from Supabase: **Project Settings → API** (Project URL and anon/publi
 
 That creates:
 
-- **`habits`** – `id`, `name`, `category`, `frequency_per_week`, `selected_days` (text[]), `xp_reward` (default 20), `created_at`
+- **`categories`** – `id`, `name` (unique), `created_at`. User-defined categories for grouping habits.
+- **`habits`** – `id`, `name`, `category` (text, matches a category name), `frequency_per_week`, `selected_days` (text[]), `recurrence` (jsonb), `xp_reward` (default 20), `created_at`
 - **`habit_completions`** – `id`, `habit_id` (FK to habits), `completion_date`, with a unique constraint on `(habit_id, completion_date)` so you can’t log the same habit twice on the same day.
 
 RLS is enabled with permissive policies so the app can read/write without auth.
@@ -49,7 +50,7 @@ Open [http://localhost:3000](http://localhost:3000); the app redirects to `/dash
 ## What’s in this step
 
 - **Dashboard** (`/dashboard`): list habits, add habit form, “Complete today” per habit.
-- **Habit creation**: name, category (Skincare, Hygiene, Diet, Supplements, Fitness, Sleep), frequency per week, optional weekday selection (Mon–Sun).
+- **Habit creation**: name, category (user-defined; add categories first, then pick one per habit), repeat/recurrence, “Complete today” per habit.
 - **Completion**: one completion per habit per day; duplicate prevented in app and by DB unique constraint.
 
 No XP or AI rival in this step.

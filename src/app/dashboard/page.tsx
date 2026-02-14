@@ -1,6 +1,6 @@
 import { createSupabaseClient } from "@/lib/supabase";
-import type { Habit } from "@/types/database";
-import { createHabit, completeHabitToday } from "./actions";
+import type { Category, Habit } from "@/types/database";
+import { createHabit, completeHabitToday, createCategory } from "./actions";
 import { HabitForm } from "./HabitForm";
 import { HabitList } from "./HabitList";
 
@@ -10,15 +10,17 @@ export default async function DashboardPage() {
   const supabase = createSupabaseClient();
   const today = new Date().toISOString().slice(0, 10);
 
-  const [habitsRes, completionsRes] = await Promise.all([
+  const [habitsRes, completionsRes, categoriesRes] = await Promise.all([
     supabase.from("habits").select("*").order("created_at", { ascending: false }),
     supabase
       .from("habit_completions")
       .select("habit_id")
       .eq("completion_date", today),
+    supabase.from("categories").select("id, name").order("name"),
   ]);
 
   const habits: Habit[] = (habitsRes.data ?? []) as Habit[];
+  const categories: Category[] = (categoriesRes.data ?? []) as Category[];
   const completedTodayIds = new Set(
     (completionsRes.data ?? []).map((c) => c.habit_id)
   );
@@ -29,7 +31,11 @@ export default async function DashboardPage() {
 
       <section className="mb-8">
         <h2 className="text-lg font-medium mb-3">Add habit</h2>
-        <HabitForm createHabit={createHabit} />
+        <HabitForm
+          categories={categories}
+          createHabit={createHabit}
+          createCategory={createCategory}
+        />
       </section>
 
       <section>

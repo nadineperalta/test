@@ -11,6 +11,23 @@ export type Json =
 export interface Database {
   public: {
     Tables: {
+      categories: {
+        Row: {
+          id: string;
+          name: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          name: string;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          name?: string;
+          created_at?: string;
+        };
+      };
       habits: {
         Row: {
           id: string;
@@ -64,6 +81,8 @@ export interface Database {
   };
 }
 
+export type Category = Database["public"]["Tables"]["categories"]["Row"];
+export type CategoryInsert = Database["public"]["Tables"]["categories"]["Insert"];
 export type Habit = Database["public"]["Tables"]["habits"]["Row"];
 export type HabitInsert = Database["public"]["Tables"]["habits"]["Insert"];
 export type HabitCompletion = Database["public"]["Tables"]["habit_completions"]["Row"];

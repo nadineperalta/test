@@ -1,5 +1,18 @@
--- Habit Tracker: tables for habits and completions (no auth)
+-- Habit Tracker: tables for categories, habits and completions (no auth)
 -- Run this in Supabase SQL Editor (Dashboard → SQL Editor → New query).
+
+-- Categories table (user-defined)
+create table if not exists public.categories (
+  id uuid primary key default gen_random_uuid(),
+  name text not null unique,
+  created_at timestamptz not null default now()
+);
+
+alter table public.categories enable row level security;
+create policy "Allow all on categories"
+  on public.categories for all
+  using (true)
+  with check (true);
 
 -- Habits table
 create table if not exists public.habits (

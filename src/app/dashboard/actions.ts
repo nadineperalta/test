@@ -5,6 +5,21 @@ import type { HabitInsert } from "@/types/database";
 import type { Recurrence } from "@/types/recurrence";
 import { revalidatePath } from "next/cache";
 
+export async function createCategory(formData: FormData) {
+  const supabase = createSupabaseClient();
+  const name = (formData.get("name") as string)?.trim();
+  if (!name) return { error: "Category name is required" };
+  const { error } = await supabase
+    .from("categories")
+    .insert({ name } as Record<string, unknown>);
+  if (error) {
+    if (error.code === "23505") return { error: "That category already exists" };
+    return { error: error.message };
+  }
+  revalidatePath("/dashboard");
+  return { error: null };
+}
+
 export async function createHabit(formData: FormData) {
   const supabase = createSupabaseClient();
   const name = formData.get("name") as string;
