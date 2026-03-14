@@ -34,6 +34,11 @@ function defaultForEffectiveType(
   return { type: "weekly", days: [1, 2, 3, 4, 5], interval: 1 };
 }
 
+/* ─── Shared styling constants ───────────────────────────────── */
+const INPUT_CLS = "border border-border bg-background rounded-lg px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring/40";
+const SELECT_CLS = "border border-border bg-background rounded-lg pl-3 pr-8 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring/40";
+const LABEL_CLS = "block text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-1.5";
+
 type Props = {
   value: Recurrence | null;
   onChange: (r: Recurrence) => void;
@@ -47,7 +52,6 @@ export function RecurrencePicker({ value, onChange }: Props) {
   const isCustom = frequency === "Custom";
   const effectiveType = isCustom ? customSub.toLowerCase() : frequency.toLowerCase();
 
-  // When frequency/customSub changes and value no longer matches type, apply default
   useEffect(() => {
     if (!value) return;
     const matches =
@@ -86,13 +90,13 @@ export function RecurrencePicker({ value, onChange }: Props) {
   }
 
   return (
-    <div className="space-y-4 border rounded-lg p-4 bg-gray-50">
+    <div className="space-y-4 border border-border rounded-xl p-4 bg-muted/50">
       <div>
-        <label className="block text-sm font-medium mb-1">Frequency</label>
+        <label className={LABEL_CLS}>Frequency</label>
         <select
           value={frequency}
           onChange={(e) => setFrequency(e.target.value as typeof frequency)}
-          className="w-full border rounded px-3 py-2 text-sm bg-white"
+          className={`w-full ${SELECT_CLS}`}
         >
           {FREQUENCY_OPTIONS.map((opt) => (
             <option key={opt} value={opt}>{opt}</option>
@@ -102,11 +106,11 @@ export function RecurrencePicker({ value, onChange }: Props) {
 
       {isCustom && (
         <div>
-          <label className="block text-sm font-medium mb-1">Custom</label>
+          <label className={LABEL_CLS}>Custom</label>
           <select
             value={customSub}
             onChange={(e) => setCustomSub(e.target.value as typeof customSub)}
-            className="w-full border rounded px-3 py-2 text-sm bg-white"
+            className={`w-full ${SELECT_CLS}`}
           >
             {CUSTOM_SUB_OPTIONS.map((opt) => (
               <option key={opt} value={opt}>{opt}</option>
@@ -115,43 +119,21 @@ export function RecurrencePicker({ value, onChange }: Props) {
         </div>
       )}
 
-      {/* Custom: show options with collapsible sub-sections */}
       {showCustomConfig && effectiveType === "daily" && (
-        <DailyOptions
-          value={value && value.type === "daily" ? value : null}
-          onChange={applyRecurrence}
-          collapsibleSubSections
-        />
+        <DailyOptions value={value && value.type === "daily" ? value : null} onChange={applyRecurrence} collapsibleSubSections />
       )}
       {showCustomConfig && effectiveType === "weekly" && (
-        <WeeklyOptions
-          value={value && value.type === "weekly" ? value : null}
-          isBiweekly={false}
-          onChange={applyRecurrence}
-          collapsibleSubSections
-        />
+        <WeeklyOptions value={value && value.type === "weekly" ? value : null} isBiweekly={false} onChange={applyRecurrence} collapsibleSubSections />
       )}
       {showCustomConfig && effectiveType === "monthly" && (
-        <MonthlyOptions
-          value={value && value.type === "monthly" ? value : null}
-          onChange={applyRecurrence}
-          collapsibleSubSections
-        />
+        <MonthlyOptions value={value && value.type === "monthly" ? value : null} onChange={applyRecurrence} collapsibleSubSections />
       )}
       {showCustomConfig && effectiveType === "yearly" && (
-        <YearlyOptions
-          value={value && value.type === "yearly" ? value : null}
-          onChange={applyRecurrence}
-          collapsibleSubSections
-        />
+        <YearlyOptions value={value && value.type === "yearly" ? value : null} onChange={applyRecurrence} collapsibleSubSections />
       )}
 
-      {/* Non-custom: show options inline, no collapse */}
       {!isCustom && effectiveType === "daily" && (
-        <DailyOptions
-          value={value && value.type === "daily" ? value : null}
-          onChange={applyRecurrence}
-        />
+        <DailyOptions value={value && value.type === "daily" ? value : null} onChange={applyRecurrence} />
       )}
       {!isCustom && (effectiveType === "weekly" || effectiveType === "biweekly") && (
         <WeeklyOptions
@@ -161,25 +143,15 @@ export function RecurrencePicker({ value, onChange }: Props) {
         />
       )}
       {!isCustom && effectiveType === "monthly" && (
-        <MonthlyOptions
-          value={value && value.type === "monthly" ? value : null}
-          onChange={applyRecurrence}
-        />
+        <MonthlyOptions value={value && value.type === "monthly" ? value : null} onChange={applyRecurrence} />
       )}
       {!isCustom && effectiveType === "yearly" && (
-        <YearlyOptions
-          value={value && value.type === "yearly" ? value : null}
-          onChange={applyRecurrence}
-        />
+        <YearlyOptions value={value && value.type === "yearly" ? value : null} onChange={applyRecurrence} />
       )}
 
       {(effectiveType === "weekdays" || effectiveType === "weekends") && (
         <ApplyPreset
-          preset={
-            effectiveType === "weekdays"
-              ? { type: "weekdays" }
-              : { type: "weekends" }
-          }
+          preset={effectiveType === "weekdays" ? { type: "weekdays" } : { type: "weekends" }}
           current={value}
           onChange={onChange}
         />
@@ -187,6 +159,8 @@ export function RecurrencePicker({ value, onChange }: Props) {
     </div>
   );
 }
+
+/* ─── Collapsible Section ─────────────────────────────────────── */
 
 function CollapsibleSection({
   title,
@@ -200,14 +174,14 @@ function CollapsibleSection({
   children: React.ReactNode;
 }) {
   return (
-    <div className="border rounded-md bg-white overflow-hidden">
+    <div className="border border-border rounded-lg bg-background overflow-hidden">
       <button
         type="button"
         onClick={onToggle}
-        className="w-full flex items-center justify-between gap-2 px-3 py-2.5 text-left text-sm font-medium hover:bg-gray-100"
+        className="w-full flex items-center justify-between gap-2 px-3 py-2.5 text-left text-sm font-medium hover:bg-accent transition-colors"
       >
         <span>{title}</span>
-        <span className="text-gray-500 text-xs" aria-hidden>
+        <span className="text-muted-foreground text-xs" aria-hidden>
           {expanded ? "▲" : "▼"}
         </span>
       </button>
@@ -215,6 +189,14 @@ function CollapsibleSection({
     </div>
   );
 }
+
+/* ─── Toggle Button (day/month selector) ──────────────────────── */
+
+const TOGGLE_BASE = "rounded-lg border text-sm font-medium transition-colors";
+const TOGGLE_ON = "bg-primary text-primary-foreground border-primary";
+const TOGGLE_OFF = "bg-background border-border text-foreground hover:bg-accent";
+
+/* ─── Daily Options ───────────────────────────────────────────── */
 
 function DailyOptions({
   value,
@@ -229,7 +211,7 @@ function DailyOptions({
   const interval = value && value.type === "daily" ? (value.interval ?? 1) : 1;
   const content = (
     <div>
-      <label className="block text-sm font-medium mb-1">Every</label>
+      <label className={LABEL_CLS}>Every</label>
       <div className="flex items-center gap-2">
         <input
           type="number"
@@ -237,25 +219,23 @@ function DailyOptions({
           max={365}
           value={interval}
           onChange={(e) => onChange({ type: "daily", interval: Math.max(1, Number(e.target.value) || 1) })}
-          className="w-20 border rounded px-2 py-1.5 text-sm"
+          className={`w-20 ${INPUT_CLS}`}
         />
-        <span className="text-sm">day(s)</span>
+        <span className="text-sm text-muted-foreground">day(s)</span>
       </div>
     </div>
   );
   if (collapsibleSubSections) {
     return (
-      <CollapsibleSection
-        title="Every X days"
-        expanded={expanded}
-        onToggle={() => setExpanded((e) => !e)}
-      >
+      <CollapsibleSection title="Every X days" expanded={expanded} onToggle={() => setExpanded((e) => !e)}>
         {content}
       </CollapsibleSection>
     );
   }
   return content;
 }
+
+/* ─── Weekly Options ──────────────────────────────────────────── */
 
 function WeeklyOptions({
   value,
@@ -275,6 +255,7 @@ function WeeklyOptions({
 
   function toggleDay(d: number) {
     const next = days.includes(d) ? days.filter((x) => x !== d) : [...days, d].sort((a, b) => a - b);
+    if (next.length === 0) return;
     if (isBiweekly) {
       onChange({ type: "biweekly", days: next });
     } else {
@@ -289,7 +270,7 @@ function WeeklyOptions({
 
   const intervalBlock = !isBiweekly ? (
     <div>
-      <label className="block text-sm font-medium mb-1">Every</label>
+      <label className={LABEL_CLS}>Every</label>
       <div className="flex items-center gap-2">
         <input
           type="number"
@@ -297,25 +278,23 @@ function WeeklyOptions({
           max={52}
           value={interval}
           onChange={(e) => setIntervalEvery(Math.max(1, Number(e.target.value) || 1))}
-          className="w-20 border rounded px-2 py-1.5 text-sm"
+          className={`w-20 ${INPUT_CLS}`}
         />
-        <span className="text-sm">week(s)</span>
+        <span className="text-sm text-muted-foreground">week(s)</span>
       </div>
     </div>
   ) : null;
 
   const daysBlock = (
     <div>
-      <span className="block text-sm font-medium mb-2">Days</span>
-      <div className="flex gap-1">
+      <span className={LABEL_CLS}>Days</span>
+      <div className="flex gap-1.5 mt-1">
         {[0, 1, 2, 3, 4, 5, 6].map((d) => (
           <button
             key={d}
             type="button"
             onClick={() => toggleDay(d)}
-            className={`w-9 h-9 rounded text-sm font-medium border ${
-              days.includes(d) ? "bg-gray-800 text-white border-gray-800" : "bg-white border-gray-300"
-            }`}
+            className={`w-9 h-9 ${TOGGLE_BASE} ${days.includes(d) ? TOGGLE_ON : TOGGLE_OFF}`}
           >
             {DAY_LETTERS[d]}
           </button>
@@ -328,19 +307,11 @@ function WeeklyOptions({
     return (
       <div className="space-y-2">
         {intervalBlock && (
-          <CollapsibleSection
-            title="Every X weeks"
-            expanded={intervalExpanded}
-            onToggle={() => setIntervalExpanded((e) => !e)}
-          >
+          <CollapsibleSection title="Every X weeks" expanded={intervalExpanded} onToggle={() => setIntervalExpanded((e) => !e)}>
             {intervalBlock}
           </CollapsibleSection>
         )}
-        <CollapsibleSection
-          title="Days of week"
-          expanded={daysExpanded}
-          onToggle={() => setDaysExpanded((e) => !e)}
-        >
+        <CollapsibleSection title="Days of week" expanded={daysExpanded} onToggle={() => setDaysExpanded((e) => !e)}>
           {daysBlock}
         </CollapsibleSection>
       </div>
@@ -353,6 +324,8 @@ function WeeklyOptions({
     </div>
   );
 }
+
+/* ─── Monthly Options ─────────────────────────────────────────── */
 
 function MonthlyOptions({
   value,
@@ -374,7 +347,7 @@ function MonthlyOptions({
 
   const everyBlock = (
     <div>
-      <label className="block text-sm font-medium mb-1">Every</label>
+      <label className={LABEL_CLS}>Every</label>
       <div className="flex items-center gap-2">
         <input
           type="number"
@@ -386,36 +359,36 @@ function MonthlyOptions({
             if (mode === "each") onChange({ type: "monthly", everyMonths: n, mode: "each", days });
             else onChange({ type: "monthly", everyMonths: n, mode: "on_the", ordinal, weekday });
           }}
-          className="w-20 border rounded px-2 py-1.5 text-sm"
+          className={`w-20 ${INPUT_CLS}`}
         />
-        <span className="text-sm">month(s)</span>
+        <span className="text-sm text-muted-foreground">month(s)</span>
       </div>
     </div>
   );
 
   const eachBlock = (
     <div className="space-y-2">
-      <label className="flex items-center gap-2 text-sm">
+      <label className="flex items-center gap-2 text-sm font-medium text-foreground">
         <input
           type="radio"
           name="monthly-mode"
           checked={mode === "each"}
           onChange={() => onChange({ type: "monthly", everyMonths, mode: "each", days: days.length ? days : [1] })}
+          className="accent-primary"
         />
         Each
       </label>
-      <div className="grid grid-cols-7 gap-1">
+      <div className="grid grid-cols-7 gap-1.5">
         {Array.from({ length: 31 }, (_, i) => i + 1).map((d) => (
           <button
             key={d}
             type="button"
             onClick={() => {
               const next = days.includes(d) ? days.filter((x) => x !== d) : [...days, d].sort((a, b) => a - b);
+              if (next.length === 0) return;
               onChange({ type: "monthly", everyMonths, mode: "each", days: next });
             }}
-            className={`h-8 rounded border text-xs ${
-              days.includes(d) ? "bg-gray-800 text-white border-gray-800" : "bg-white border-gray-300"
-            }`}
+            className={`h-8 ${TOGGLE_BASE} text-xs ${days.includes(d) ? TOGGLE_ON : TOGGLE_OFF}`}
           >
             {d}
           </button>
@@ -426,12 +399,13 @@ function MonthlyOptions({
 
   const onTheBlock = (
     <div className="space-y-2">
-      <label className="flex items-center gap-2 text-sm">
+      <label className="flex items-center gap-2 text-sm font-medium text-foreground">
         <input
           type="radio"
           name="monthly-mode"
           checked={mode === "on_the"}
           onChange={() => onChange({ type: "monthly", everyMonths, mode: "on_the", ordinal, weekday })}
+          className="accent-primary"
         />
         On the
       </label>
@@ -439,7 +413,7 @@ function MonthlyOptions({
         <select
           value={ordinal}
           onChange={(e) => onChange({ type: "monthly", everyMonths, mode: "on_the", ordinal: e.target.value as Ordinal, weekday })}
-          className="border rounded px-2 py-1.5 text-sm"
+          className={SELECT_CLS}
         >
           {ORDINALS.map((o) => (
             <option key={o} value={o}>{o}</option>
@@ -448,7 +422,7 @@ function MonthlyOptions({
         <select
           value={weekday}
           onChange={(e) => onChange({ type: "monthly", everyMonths, mode: "on_the", ordinal, weekday: e.target.value as Weekday })}
-          className="border rounded px-2 py-1.5 text-sm"
+          className={SELECT_CLS}
         >
           {WEEKDAYS.map((w) => (
             <option key={w} value={w}>{w}</option>
@@ -462,18 +436,10 @@ function MonthlyOptions({
     return (
       <div className="space-y-2">
         {everyBlock}
-        <CollapsibleSection
-          title="Each (days of month)"
-          expanded={eachExpanded}
-          onToggle={() => setEachExpanded((e) => !e)}
-        >
+        <CollapsibleSection title="Each (days of month)" expanded={eachExpanded} onToggle={() => setEachExpanded((e) => !e)}>
           {eachBlock}
         </CollapsibleSection>
-        <CollapsibleSection
-          title="On the (ordinal weekday)"
-          expanded={onTheExpanded}
-          onToggle={() => setOnTheExpanded((e) => !e)}
-        >
+        <CollapsibleSection title="On the (ordinal weekday)" expanded={onTheExpanded} onToggle={() => setOnTheExpanded((e) => !e)}>
           {onTheBlock}
         </CollapsibleSection>
       </div>
@@ -489,6 +455,8 @@ function MonthlyOptions({
     </div>
   );
 }
+
+/* ─── Yearly Options ──────────────────────────────────────────── */
 
 function YearlyOptions({
   value,
@@ -521,7 +489,7 @@ function YearlyOptions({
 
   const everyBlock = (
     <div>
-      <label className="block text-sm font-medium mb-1">Every</label>
+      <label className={LABEL_CLS}>Every</label>
       <div className="flex items-center gap-2">
         <input
           type="number"
@@ -537,25 +505,23 @@ function YearlyOptions({
               onThe: useOnThe ? { ordinal, weekday } : undefined,
             });
           }}
-          className="w-20 border rounded px-2 py-1.5 text-sm"
+          className={`w-20 ${INPUT_CLS}`}
         />
-        <span className="text-sm">year(s)</span>
+        <span className="text-sm text-muted-foreground">year(s)</span>
       </div>
     </div>
   );
 
   const monthsBlock = (
     <div>
-      <span className="block text-sm font-medium mb-2">Months</span>
-      <div className="grid grid-cols-4 gap-2">
+      <span className={LABEL_CLS}>Months</span>
+      <div className="grid grid-cols-4 gap-2 mt-1">
         {MONTH_ABBREV.map((label, i) => (
           <button
             key={i}
             type="button"
             onClick={() => toggleMonth(i + 1)}
-            className={`py-2 rounded border text-sm ${
-              months.includes(i + 1) ? "bg-gray-800 text-white border-gray-800" : "bg-white border-gray-300"
-            }`}
+            className={`py-2 ${TOGGLE_BASE} ${months.includes(i + 1) ? TOGGLE_ON : TOGGLE_OFF}`}
           >
             {label}
           </button>
@@ -566,7 +532,7 @@ function YearlyOptions({
 
   const onTheBlock = (
     <div>
-      <label className="flex items-center gap-2 text-sm mb-2">
+      <label className="flex items-center gap-2 text-sm font-medium text-foreground mb-2">
         <input
           type="checkbox"
           checked={useOnThe}
@@ -579,6 +545,7 @@ function YearlyOptions({
               onThe: e.target.checked ? { ordinal, weekday } : undefined,
             });
           }}
+          className="accent-primary"
         />
         On the
       </label>
@@ -592,7 +559,7 @@ function YearlyOptions({
             months,
             onThe: { ordinal: e.target.value as Ordinal, weekday },
           })}
-          className="border rounded px-2 py-1.5 text-sm disabled:opacity-60"
+          className={`${SELECT_CLS} disabled:opacity-50`}
         >
           {ORDINALS.map((o) => (
             <option key={o} value={o}>{o}</option>
@@ -607,7 +574,7 @@ function YearlyOptions({
             months,
             onThe: { ordinal, weekday: e.target.value as Weekday },
           })}
-          className="border rounded px-2 py-1.5 text-sm disabled:opacity-60"
+          className={`${SELECT_CLS} disabled:opacity-50`}
         >
           {WEEKDAYS.map((w) => (
             <option key={w} value={w}>{w}</option>
@@ -621,18 +588,10 @@ function YearlyOptions({
     return (
       <div className="space-y-2">
         {everyBlock}
-        <CollapsibleSection
-          title="Months of year"
-          expanded={monthsExpanded}
-          onToggle={() => setMonthsExpanded((e) => !e)}
-        >
+        <CollapsibleSection title="Months of year" expanded={monthsExpanded} onToggle={() => setMonthsExpanded((e) => !e)}>
           {monthsBlock}
         </CollapsibleSection>
-        <CollapsibleSection
-          title="On the (ordinal weekday)"
-          expanded={onTheExpanded}
-          onToggle={() => setOnTheExpanded((e) => !e)}
-        >
+        <CollapsibleSection title="On the (ordinal weekday)" expanded={onTheExpanded} onToggle={() => setOnTheExpanded((e) => !e)}>
           {onTheBlock}
         </CollapsibleSection>
       </div>
@@ -646,6 +605,8 @@ function YearlyOptions({
     </div>
   );
 }
+
+/* ─── Apply Preset ────────────────────────────────────────────── */
 
 function ApplyPreset({
   preset,

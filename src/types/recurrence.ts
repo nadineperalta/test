@@ -24,6 +24,9 @@ export type Recurrence =
 export type Ordinal = "first" | "second" | "third" | "fourth" | "last";
 export type Weekday = "sunday" | "monday" | "tuesday" | "wednesday" | "thursday" | "friday" | "saturday";
 
+/** Fixed epoch for interval calculations (avoids resetting every month). */
+const EPOCH = new Date("2024-01-01T12:00:00");
+
 const WEEKDAY_NAMES: Weekday[] = [
   "sunday",
   "monday",
@@ -95,8 +98,13 @@ export function isDueOn(recurrence: Recurrence | null, date: string | Date): boo
   const weekOfMonth = Math.ceil(dateOfMonth / 7);
 
   switch (recurrence.type) {
-    case "daily":
-      return true;
+    case "daily": {
+      if (!recurrence.interval || recurrence.interval <= 1) return true;
+      const daysSinceEpoch = Math.floor(
+        (d.getTime() - EPOCH.getTime()) / (24 * 60 * 60 * 1000)
+      );
+      return daysSinceEpoch % recurrence.interval === 0;
+    }
     case "weekdays":
       return dayOfWeek >= 1 && dayOfWeek <= 5;
     case "weekends":
@@ -105,10 +113,8 @@ export function isDueOn(recurrence: Recurrence | null, date: string | Date): boo
     case "biweekly":
       if (!recurrence.days.includes(dayOfWeek)) return false;
       if (recurrence.type === "biweekly" || (recurrence.interval && recurrence.interval > 1)) {
-        const start = new Date(d);
-        start.setDate(1);
         const msPerWeek = 7 * 24 * 60 * 60 * 1000;
-        const weekIndex = Math.floor((d.getTime() - start.getTime()) / msPerWeek);
+        const weekIndex = Math.floor((d.getTime() - EPOCH.getTime()) / msPerWeek);
         const interval = recurrence.type === "biweekly" ? 2 : (recurrence.interval ?? 1);
         return weekIndex % interval === 0;
       }

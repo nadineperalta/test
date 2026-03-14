@@ -1,9 +1,10 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import { Geist } from "next/font/google";
-import { cn } from "@/lib/utils";
+import { Inter } from "next/font/google";
+import { ThemeToggle } from "@/components/ThemeToggle";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
 
-const geist = Geist({subsets:['latin'],variable:'--font-sans'});
+const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
 
 export const metadata: Metadata = {
   title: "Habit Tracker",
@@ -16,8 +17,13 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={cn("font-sans", geist.variable)}>
-      <body className="antialiased">{children}</body>
+    <html lang="en" className={inter.variable} suppressHydrationWarning>
+      <body className="antialiased min-h-screen">
+        <nav className="flex items-center justify-end px-6 pt-5 max-w-3xl mx-auto">
+          <ThemeToggle />
+        </nav>
+        <ErrorBoundary>{children}</ErrorBoundary>
+      </body>
     </html>
   );
 }
