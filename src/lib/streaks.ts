@@ -2,17 +2,21 @@ import type { Habit } from "@/types/database";
 import { isDueOn } from "@/types/recurrence";
 import { getLocalDateString } from "./dates";
 
+export interface StreakData {
+  currentStreak: number;
+  longestStreak: number;
+}
+
 /**
- * Calculate the current completion streak for each habit.
- * Walks backwards from today up to 90 days, counting consecutive
- * completions on days the habit was due.
+ * Calculate the current and longest completion streaks for each habit.
+ * Walks backwards from today up to 90 days.
  */
 export function calculateStreaks(
   habits: Habit[],
   completions: { habit_id: string; completion_date: string }[],
   today: string
-): Record<string, number> {
-  const streaks: Record<string, number> = {};
+): Record<string, StreakData> {
+  const streaks: Record<string, StreakData> = {};
 
   const byHabit: Record<string, Set<string>> = {};
   for (const c of completions) {
@@ -21,15 +25,19 @@ export function calculateStreaks(
   }
 
   for (const habit of habits) {
-    let streak = 0;
+    let currentStreak = 0;
+    let longestStreak = 0;
+    let runningStreak = 0;
+    let currentBroken = false;
     const todayDate = new Date(today + "T12:00:00");
 
+    // Check today first for current streak
     if (isDueOn(habit.recurrence, todayDate)) {
       if (byHabit[habit.id]?.has(today)) {
-        streak = 1;
+        currentStreak = 1;
+        runningStreak = 1;
       } else {
-        streaks[habit.id] = 0;
-        continue;
+        currentBroken = true;
       }
     }
 
@@ -40,14 +48,22 @@ export function calculateStreaks(
 
       if (isDueOn(habit.recurrence, d)) {
         if (byHabit[habit.id]?.has(dateStr)) {
-          streak++;
+          runningStreak++;
+          if (!currentBroken) {
+            currentStreak = runningStreak;
+          }
         } else {
-          break;
+          longestStreak = Math.max(longestStreak, runningStreak);
+          runningStreak = 0;
+          currentBroken = true;
         }
       }
     }
 
-    streaks[habit.id] = streak;
+    longestStreak = Math.max(longestStreak, runningStreak);
+    longestStreak = Math.max(longestStreak, currentStreak);
+
+    streaks[habit.id] = { currentStreak, longestStreak };
   }
 
   return streaks;

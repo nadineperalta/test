@@ -15,6 +15,8 @@ import {
   updateHabit,
   deleteCategory,
   renameCategory,
+  archiveHabit,
+  unarchiveHabit,
 } from "./actions";
 import { HabitForm } from "./HabitForm";
 import { HabitList } from "./HabitList";
@@ -40,18 +42,22 @@ export default async function DashboardPage() {
         .from("habit_completions")
         .select("habit_id")
         .eq("completion_date", today),
-      supabase.from("categories").select("id, name").order("name"),
+      supabase.from("categories").select("*").order("name"),
       supabase
         .from("habit_completions")
         .select("habit_id, completion_date")
         .gte("completion_date", cutoffDate),
     ]);
 
-  const habits: Habit[] = (habitsRes.data ?? []) as Habit[];
+  const allHabits: Habit[] = (habitsRes.data ?? []) as Habit[];
   const categories: Category[] = (categoriesRes.data ?? []) as Category[];
   const completedTodayIds = new Set(
     (completionsRes.data ?? []).map((c) => c.habit_id)
   );
+
+  // Active habits (not archived) for main display
+  const habits = allHabits.filter((h) => !h.is_archived);
+  const archivedHabits = allHabits.filter((h) => h.is_archived);
 
   const dueTodayIds = new Set(
     habits.filter((h) => isDueOn(h.recurrence, today)).map((h) => h.id)
@@ -63,17 +69,21 @@ export default async function DashboardPage() {
   }[];
   const streaks = calculateStreaks(habits, recentCompletions, today);
 
+  // Build category map by id for easy lookup
+  const categoryMap: Record<string, Category> = {};
+  for (const c of categories) {
+    categoryMap[c.id] = c;
+  }
+
   const habitCountByCategory: Record<string, number> = {};
-  for (const h of habits) {
+  for (const h of allHabits) {
     habitCountByCategory[h.category] =
       (habitCountByCategory[h.category] || 0) + 1;
   }
 
-  const categoryColorMap = buildCategoryColorMap(
-    categories.map((c) => c.name)
-  );
+  const categoryColorMap = buildCategoryColorMap(categories);
 
-  // Evaluation engine: 30-day adherence for each habit
+  // Evaluation engine: 30-day adherence for each active habit
   const thirtyDaysAgo = new Date();
   thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
   const evalStart = getLocalDateString(thirtyDaysAgo);
@@ -101,9 +111,6 @@ export default async function DashboardPage() {
         <h1 className="text-3xl font-bold tracking-wider text-foreground">
           Habit Tracker
         </h1>
-        <p className="mt-2 text-sm tracking-widest uppercase text-muted-foreground">
-          Build better routines, one day at a time
-        </p>
         <div className="mt-4 mx-auto w-12 h-0.5 bg-primary/40 rounded-full" />
       </header>
 
@@ -136,6 +143,7 @@ export default async function DashboardPage() {
         </h2>
         <HabitList
           habits={habits}
+          archivedHabits={archivedHabits}
           completedTodayIds={completedTodayIds}
           dueTodayIds={dueTodayIds}
           streaks={streaks}
@@ -145,6 +153,8 @@ export default async function DashboardPage() {
           uncompleteHabitToday={uncompleteHabitToday}
           deleteHabit={deleteHabit}
           updateHabit={updateHabit}
+          archiveHabit={archiveHabit}
+          unarchiveHabit={unarchiveHabit}
         />
       </section>
 
@@ -195,4 +205,3 @@ export default async function DashboardPage() {
     </main>
   );
 }
-

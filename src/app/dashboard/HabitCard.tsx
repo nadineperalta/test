@@ -1,10 +1,11 @@
 "use client";
 
-import { Pencil, Trash2, X, Flame, Star } from "lucide-react";
+import { Pencil, Archive, X, Flame, Star, Clock, StickyNote, Trophy } from "lucide-react";
 import type { Habit } from "@/types/database";
 import type { ActionResult } from "@/types/actions";
 import { formatRecurrence } from "@/types/recurrence";
 import type { CategoryColor } from "@/lib/category-colors";
+import type { StreakData } from "@/lib/streaks";
 import { CategoryIcon } from "./CategoryIcon";
 import { CompletionToggle } from "./CompletionToggle";
 
@@ -17,6 +18,12 @@ function recurrenceDisplay(habit: Habit): string {
   }`;
 }
 
+const TIME_LABELS: Record<string, string> = {
+  morning: "Morning",
+  afternoon: "Afternoon",
+  evening: "Evening",
+};
+
 export function HabitCard({
   habit,
   completed,
@@ -25,8 +32,7 @@ export function HabitCard({
   color,
   confirmingDelete,
   onEdit,
-  onDeleteRequest,
-  onDeleteConfirm,
+  onArchive,
   onDeleteCancel,
   completeHabitToday,
   uncompleteHabitToday,
@@ -34,12 +40,11 @@ export function HabitCard({
   habit: Habit;
   completed: boolean;
   isDueToday: boolean;
-  streak: number;
+  streak: StreakData;
   color?: CategoryColor;
   confirmingDelete: boolean;
   onEdit: () => void;
-  onDeleteRequest: () => void;
-  onDeleteConfirm: () => void;
+  onArchive: () => void;
   onDeleteCancel: () => void;
   completeHabitToday: (id: string) => ActionResult;
   uncompleteHabitToday: (id: string) => ActionResult;
@@ -91,16 +96,16 @@ export function HabitCard({
             <div className="flex items-center gap-1">
               <button
                 type="button"
-                onClick={onDeleteConfirm}
-                className="px-2 py-1 rounded-lg bg-destructive text-destructive-foreground text-[11px] font-semibold"
+                onClick={onArchive}
+                className="px-2 py-1 rounded-lg bg-caramel/15 text-caramel text-[11px] font-semibold"
               >
-                Delete
+                Archive
               </button>
               <button
                 type="button"
                 onClick={onDeleteCancel}
                 className="p-1 rounded-lg hover:bg-accent"
-                aria-label="Cancel delete"
+                aria-label="Cancel archive"
               >
                 <X className="w-3.5 h-3.5" />
               </button>
@@ -108,11 +113,11 @@ export function HabitCard({
           ) : (
             <button
               type="button"
-              onClick={onDeleteRequest}
+              onClick={onArchive}
               className="p-1.5 rounded-lg hover:bg-accent transition-colors"
-              aria-label={`Delete ${habit.name}`}
+              aria-label={`Archive ${habit.name}`}
             >
-              <Trash2 className="w-3.5 h-3.5 text-muted-foreground" />
+              <Archive className="w-3.5 h-3.5 text-muted-foreground" />
             </button>
           )}
         </div>
@@ -126,12 +131,36 @@ export function HabitCard({
         </p>
       </div>
 
+      {/* Time of day + note */}
+      {(habit.time_of_day || habit.note) && (
+        <div className="flex flex-col gap-1">
+          {habit.time_of_day && (
+            <span className="inline-flex items-center gap-1 text-[11px] text-muted-foreground">
+              <Clock className="w-3 h-3" />
+              {TIME_LABELS[habit.time_of_day] ?? habit.time_of_day}
+            </span>
+          )}
+          {habit.note && (
+            <span className="inline-flex items-center gap-1 text-[11px] text-muted-foreground">
+              <StickyNote className="w-3 h-3" />
+              {habit.note}
+            </span>
+          )}
+        </div>
+      )}
+
       {/* Stats */}
-      <div className="flex items-center gap-3">
-        {streak > 0 && (
+      <div className="flex items-center gap-3 flex-wrap">
+        {streak.currentStreak > 0 && (
           <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-caramel/10 text-caramel text-[11px] font-semibold dark:bg-caramel/20">
             <Flame className="w-3 h-3" />
-            {streak}d streak
+            {streak.currentStreak}d streak
+          </span>
+        )}
+        {streak.longestStreak > streak.currentStreak && (
+          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-primary/10 text-primary text-[11px] font-semibold">
+            <Trophy className="w-3 h-3" />
+            Best: {streak.longestStreak}d
           </span>
         )}
         <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-slate-blue/10 text-slate-blue text-[11px] font-semibold dark:bg-slate-blue/20 dark:text-slate-blue-light">

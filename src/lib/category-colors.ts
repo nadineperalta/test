@@ -1,9 +1,11 @@
 /**
  * Deterministic category → color mapping.
  *
- * Uses the app's custom warm palette:
- * #79443B #993300 #800020 #CC7F3B #8A3324 #954535 #592720
+ * Uses stored color if present on the category, otherwise falls back
+ * to the deterministic warm palette assignment.
  */
+
+import type { Category } from "@/types/database";
 
 export interface CategoryColor {
   border: string;
@@ -72,14 +74,38 @@ const PALETTE: CategoryColor[] = [
   },
 ];
 
-/** Build a map from category name → color, based on sorted category order. */
+/** Convert a hex color to a CategoryColor with computed alpha variants. */
+function hexToCategoryColor(hex: string): CategoryColor {
+  // Parse hex to rgb
+  const r = parseInt(hex.slice(1, 3), 16);
+  const g = parseInt(hex.slice(3, 5), 16);
+  const b = parseInt(hex.slice(5, 7), 16);
+  // Darken for text
+  const dr = Math.round(r * 0.8);
+  const dg = Math.round(g * 0.8);
+  const db = Math.round(b * 0.8);
+  return {
+    border: hex,
+    badgeBg: `rgba(${r},${g},${b},0.13)`,
+    badgeText: `rgb(${dr},${dg},${db})`,
+    cardTint: `rgba(${r},${g},${b},0.06)`,
+    badgeBorder: `rgba(${r},${g},${b},0.28)`,
+  };
+}
+
+/** Build a map from category name → color, using stored color if present, else deterministic fallback. */
 export function buildCategoryColorMap(
-  categoryNames: string[]
+  categories: Category[]
 ): Record<string, CategoryColor> {
-  const sorted = [...categoryNames].sort();
+  const sorted = [...categories].sort((a, b) => a.name.localeCompare(b.name));
   const map: Record<string, CategoryColor> = {};
   for (let i = 0; i < sorted.length; i++) {
-    map[sorted[i]] = PALETTE[i % PALETTE.length];
+    const cat = sorted[i];
+    if (cat.color) {
+      map[cat.name] = hexToCategoryColor(cat.color);
+    } else {
+      map[cat.name] = PALETTE[i % PALETTE.length];
+    }
   }
   return map;
 }

@@ -15,16 +15,25 @@ export interface Database {
         Row: {
           id: string;
           name: string;
+          color: string | null;
+          icon: string | null;
+          is_system: boolean;
           created_at: string;
         };
         Insert: {
           id?: string;
           name: string;
+          color?: string | null;
+          icon?: string | null;
+          is_system?: boolean;
           created_at?: string;
         };
         Update: {
           id?: string;
           name?: string;
+          color?: string | null;
+          icon?: string | null;
+          is_system?: boolean;
           created_at?: string;
         };
       };
@@ -33,6 +42,11 @@ export interface Database {
           id: string;
           name: string;
           category: string;
+          category_id: string;
+          icon: string | null;
+          time_of_day: string | null;
+          note: string | null;
+          is_archived: boolean;
           frequency_per_week: number;
           selected_days: string[] | null;
           recurrence: Recurrence | null;
@@ -43,6 +57,11 @@ export interface Database {
           id?: string;
           name: string;
           category: string;
+          category_id: string;
+          icon?: string | null;
+          time_of_day?: string | null;
+          note?: string | null;
+          is_archived?: boolean;
           frequency_per_week?: number;
           selected_days?: string[] | null;
           recurrence?: Recurrence | null;
@@ -53,6 +72,11 @@ export interface Database {
           id?: string;
           name?: string;
           category?: string;
+          category_id?: string;
+          icon?: string | null;
+          time_of_day?: string | null;
+          note?: string | null;
+          is_archived?: boolean;
           frequency_per_week?: number;
           selected_days?: string[] | null;
           recurrence?: Recurrence | null;
@@ -65,16 +89,19 @@ export interface Database {
           id: string;
           habit_id: string;
           completion_date: string;
+          completed_at: string | null;
         };
         Insert: {
           id?: string;
           habit_id: string;
           completion_date: string;
+          completed_at?: string | null;
         };
         Update: {
           id?: string;
           habit_id?: string;
           completion_date?: string;
+          completed_at?: string | null;
         };
       };
     };

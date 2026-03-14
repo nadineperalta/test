@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Pencil, Trash2, X, ChevronDown, ChevronUp } from "lucide-react";
+import { Pencil, Trash2, X, ChevronDown, ChevronUp, Shield } from "lucide-react";
 import type { Category } from "@/types/database";
 
 import type { ActionResult } from "@/types/actions";
@@ -113,6 +113,9 @@ export function CategoryManager({
                 <>
                   <div className="flex-1 min-w-0 flex items-center gap-2">
                     <span className="text-sm font-medium">{cat.name}</span>
+                    {cat.is_system && (
+                      <Shield className="w-3 h-3 text-muted-foreground" aria-label="System category" />
+                    )}
                     <span className="text-[11px] text-muted-foreground tracking-wide">
                       ({habitCountByCategory[cat.name] || 0} habits)
                     </span>
@@ -130,7 +133,11 @@ export function CategoryManager({
                     >
                       <Pencil className="w-3.5 h-3.5 text-muted-foreground" />
                     </button>
-                    {confirmDeleteId === cat.id ? (
+                    {cat.is_system ? (
+                      <span className="p-1.5 opacity-30 cursor-not-allowed" aria-label="System categories cannot be deleted">
+                        <Trash2 className="w-3.5 h-3.5 text-muted-foreground" />
+                      </span>
+                    ) : confirmDeleteId === cat.id ? (
                       <div className="flex items-center gap-1">
                         <button
                           type="button"

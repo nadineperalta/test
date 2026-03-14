@@ -6,6 +6,7 @@ import type { Habit, Category } from "@/types/database";
 import type { Recurrence } from "@/types/recurrence";
 import type { ActionResult } from "@/types/actions";
 import { RecurrencePicker } from "./RecurrencePicker";
+import { CategorySelect } from "./CategorySelect";
 
 export function EditHabitCard({
   habit,
@@ -18,17 +19,23 @@ export function EditHabitCard({
   onSave: (data: {
     name: string;
     category: string;
+    category_id: string;
     recurrence: Recurrence | null;
     xp_reward: number;
+    time_of_day?: string | null;
+    note?: string | null;
   }) => ActionResult;
   onCancel: () => void;
 }) {
   const [name, setName] = useState(habit.name);
-  const [category, setCategory] = useState(habit.category);
+  const [categoryId, setCategoryId] = useState(habit.category_id);
+  const [categoryName, setCategoryName] = useState(habit.category);
   const [recurrence, setRecurrence] = useState<Recurrence>(
     habit.recurrence ?? { type: "weekly", days: [1, 2, 3, 4, 5], interval: 1 }
   );
   const [xpReward, setXpReward] = useState(habit.xp_reward);
+  const [timeOfDay, setTimeOfDay] = useState(habit.time_of_day ?? "");
+  const [note, setNote] = useState(habit.note ?? "");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -41,9 +48,12 @@ export function EditHabitCard({
     setError(null);
     const result = await onSave({
       name: name.trim(),
-      category,
+      category: categoryName,
+      category_id: categoryId,
       recurrence,
       xp_reward: xpReward,
+      time_of_day: timeOfDay || null,
+      note: note.trim() || null,
     });
     setSaving(false);
     if (result.error) setError(result.error);
@@ -80,21 +90,51 @@ export function EditHabitCard({
         <label htmlFor={`edit-category-${habit.id}`} className="label-xs mb-1.5">
           Category
         </label>
-        <select
+        <CategorySelect
+          categories={categories}
+          value={categoryId}
+          onChange={(id, catName) => {
+            setCategoryId(id);
+            setCategoryName(catName);
+          }}
           id={`edit-category-${habit.id}`}
-          value={category}
-          onChange={(e) => setCategory(e.target.value)}
-          className="select-field w-full"
-        >
-          {categories.map((c) => (
-            <option key={c.id} value={c.name}>{c.name}</option>
-          ))}
-        </select>
+        />
       </div>
 
       <div>
         <span className="label-xs mb-2">Repeat</span>
         <RecurrencePicker value={recurrence} onChange={setRecurrence} />
+      </div>
+
+      <div>
+        <label htmlFor={`edit-time-${habit.id}`} className="label-xs mb-1.5">
+          Time of day
+        </label>
+        <select
+          id={`edit-time-${habit.id}`}
+          value={timeOfDay}
+          onChange={(e) => setTimeOfDay(e.target.value)}
+          className="input-field"
+        >
+          <option value="">Any time</option>
+          <option value="morning">Morning</option>
+          <option value="afternoon">Afternoon</option>
+          <option value="evening">Evening</option>
+        </select>
+      </div>
+
+      <div>
+        <label htmlFor={`edit-note-${habit.id}`} className="label-xs mb-1.5">
+          Note
+        </label>
+        <textarea
+          id={`edit-note-${habit.id}`}
+          value={note}
+          onChange={(e) => setNote(e.target.value)}
+          placeholder="Optional note..."
+          rows={2}
+          className="input-field resize-none"
+        />
       </div>
 
       <div>

@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import type { Category } from "@/types/database";
 import type { Recurrence } from "@/types/recurrence";
 import { RecurrencePicker } from "./RecurrencePicker";
+import { CategorySelect } from "./CategorySelect";
 
 const DEFAULT_RECURRENCE: Recurrence = { type: "weekly", days: [1, 2, 3, 4, 5], interval: 1 };
 
@@ -29,6 +30,9 @@ export function HabitForm({
   const [newCategoryName, setNewCategoryName] = useState("");
   const [categoryError, setCategoryError] = useState<string | null>(null);
   const [categoryPending, setCategoryPending] = useState(false);
+  const [selectedCategoryId, setSelectedCategoryId] = useState(categories[0]?.id ?? "");
+  const [timeOfDay, setTimeOfDay] = useState("");
+  const [note, setNote] = useState("");
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -55,11 +59,18 @@ export function HabitForm({
     const formData = new FormData(form);
     formData.set("recurrence", JSON.stringify(recurrence));
     formData.set("xp_reward", String(xpReward));
+    if (timeOfDay) formData.set("time_of_day", timeOfDay);
+    if (note.trim()) formData.set("note", note.trim());
     setError(null);
     setIsPending(true);
     const result = await createHabit(formData);
     setIsPending(false);
-    if (result.error) setError(result.error);
+    if (result.error) {
+      setError(result.error);
+    } else {
+      setNote("");
+      setTimeOfDay("");
+    }
   }
 
   async function handleAddCategory(e?: React.FormEvent) {
@@ -135,19 +146,14 @@ export function HabitForm({
             Category
           </label>
           <div className="flex gap-2 flex-wrap items-center">
-            <select
+            <CategorySelect
+              categories={categories}
+              value={selectedCategoryId}
+              onChange={(id) => setSelectedCategoryId(id)}
+              disabled={categories.length === 0}
               id="category"
               name="category"
-              required
-              className="select-field flex-1 min-w-[140px]"
-              disabled={categories.length === 0}
-            >
-              {categories.map((c) => (
-                <option key={c.id} value={c.name}>
-                  {c.name}
-                </option>
-              ))}
-            </select>
+            />
             {categories.length > 0 && (
               <button
                 type="button"
@@ -195,6 +201,37 @@ export function HabitForm({
         <div>
           <span className="label-xs mb-2">Repeat</span>
           <RecurrencePicker value={recurrence} onChange={setRecurrence} />
+        </div>
+
+        <div>
+          <label htmlFor="time_of_day" className="label-xs mb-1.5">
+            Time of day
+          </label>
+          <select
+            id="time_of_day"
+            value={timeOfDay}
+            onChange={(e) => setTimeOfDay(e.target.value)}
+            className="input-field"
+          >
+            <option value="">Any time</option>
+            <option value="morning">Morning</option>
+            <option value="afternoon">Afternoon</option>
+            <option value="evening">Evening</option>
+          </select>
+        </div>
+
+        <div>
+          <label htmlFor="note" className="label-xs mb-1.5">
+            Note
+          </label>
+          <textarea
+            id="note"
+            value={note}
+            onChange={(e) => setNote(e.target.value)}
+            placeholder="Optional note or reminder..."
+            rows={2}
+            className="input-field resize-none"
+          />
         </div>
 
         <div>
