@@ -2,124 +2,99 @@
 
 import { useState } from "react";
 import type { PeriodSummary } from "@/lib/analytics";
-import type { CategoryColor } from "@/lib/category-colors";
-
 type Period = "today" | "week" | "month" | "quarter";
+type CategoryFilter = "all" | string;
 
 export function AnalyticsSummary({
   today,
   week,
   month,
   quarter,
-  categoryColorMap,
 }: {
   today: PeriodSummary;
   week: PeriodSummary;
   month: PeriodSummary;
   quarter: PeriodSummary;
-  categoryColorMap: Record<string, CategoryColor>;
 }) {
   const [period, setPeriod] = useState<Period>("today");
+  const [categoryFilter, setCategoryFilter] = useState<CategoryFilter>("all");
 
   const summaryMap: Record<Period, PeriodSummary> = { today, week, month, quarter };
   const current = summaryMap[period];
 
+  // Filter stats by category if selected
+  const filteredStats =
+    categoryFilter === "all"
+      ? current
+      : (() => {
+          const cat = current.byCategory[categoryFilter];
+          if (!cat) return current;
+          return {
+            ...current,
+            totalExpected: cat.expected,
+            totalCompleted: cat.completed,
+            overallRate: cat.adherenceRate,
+          };
+        })();
+
   const rateColor =
-    current.overallRate >= 80
+    filteredStats.overallRate >= 80
       ? "text-sage"
-      : current.overallRate >= 50
+      : filteredStats.overallRate >= 50
         ? "text-caramel"
         : "text-destructive";
 
-  const categories = Object.entries(current.byCategory);
+  const categoryNames = Object.keys(current.byCategory);
 
   return (
-    <div className="bg-card border border-border rounded-xl shadow-sm p-5 space-y-4">
-      {/* Period toggle */}
-      <div className="flex gap-2 flex-wrap" role="tablist" aria-label="Analytics period">
+    <div className="bg-muted/60 dark:bg-card border border-border rounded-2xl shadow-sm overflow-hidden">
+      {/* Period toggle + category filter */}
+      <div className="flex gap-1 p-2 bg-muted/80 dark:bg-muted/40 overflow-x-auto scrollbar-hide" role="tablist" aria-label="Analytics period">
         {(["today", "week", "month", "quarter"] as Period[]).map((p) => (
           <button
             key={p}
             role="tab"
             aria-selected={period === p}
             onClick={() => setPeriod(p)}
-            className={`px-4 py-2 min-h-[44px] rounded-full text-sm font-semibold tracking-wide transition-shadow capitalize ${
+            className={`px-3 sm:px-4 py-2 min-h-[44px] rounded-lg text-xs font-bold uppercase tracking-wider transition-all shrink-0 ${
               period === p
-                ? "bg-primary text-primary-foreground shadow-sm"
-                : "bg-card text-muted-foreground border border-border hover:shadow-sm"
+                ? "bg-background text-foreground shadow-sm"
+                : "bg-transparent text-muted-foreground hover:bg-background/60"
             }`}
           >
             {p}
           </button>
         ))}
+        <button
+          type="button"
+          onClick={() => {
+            const idx = categoryFilter === "all" ? 0 : categoryNames.indexOf(categoryFilter) + 1;
+            const next = idx >= categoryNames.length ? "all" : categoryNames[idx];
+            setCategoryFilter(next);
+          }}
+          className={`px-3 sm:px-4 py-2 min-h-[44px] rounded-lg text-xs font-bold uppercase tracking-wider transition-all ml-auto shrink-0 ${
+            categoryFilter !== "all"
+              ? "bg-background text-foreground shadow-sm"
+              : "bg-transparent text-muted-foreground hover:bg-background/60"
+          }`}
+        >
+          {categoryFilter === "all" ? "All Categories" : categoryFilter}
+        </button>
       </div>
 
       {/* Top summary stats */}
-      <div className="grid grid-cols-3 gap-2 sm:gap-4">
+      <div className="grid grid-cols-3 gap-4 px-4 sm:px-6 py-6 sm:py-8">
         <div className="text-center">
-          <p className="text-2xl font-bold tabular-nums">{current.totalExpected}</p>
-          <p className="text-xs text-muted-foreground uppercase tracking-widest mt-1">Expected</p>
-        </div>
-        <div className="text-center">
-          <p className="text-2xl font-bold tabular-nums">{current.totalCompleted}</p>
-          <p className="text-xs text-muted-foreground uppercase tracking-widest mt-1">Completed</p>
+          <p className="text-2xl sm:text-5xl font-black tabular-nums tracking-tight">{filteredStats.totalExpected}</p>
+          <p className="text-[9px] sm:text-xs font-bold text-muted-foreground uppercase tracking-widest mt-2">Expected</p>
         </div>
         <div className="text-center">
-          <p className={`text-2xl font-bold tabular-nums ${rateColor}`}>{current.overallRate}%</p>
-          <p className="text-xs text-muted-foreground uppercase tracking-widest mt-1">Adherence</p>
+          <p className="text-2xl sm:text-5xl font-black tabular-nums tracking-tight">{filteredStats.totalCompleted}</p>
+          <p className="text-[9px] sm:text-xs font-bold text-muted-foreground uppercase tracking-widest mt-2">Completed</p>
         </div>
-      </div>
-
-      {/* Per-category breakdown */}
-      {categories.length > 0 && (
-        <div className="space-y-2 pt-2 border-t border-border">
-          <h3 className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
-            By Category
-          </h3>
-          {categories.map(([catName, cat]) => {
-            const color = categoryColorMap[catName];
-            const catRateColor =
-              cat.adherenceRate >= 80
-                ? "text-sage"
-                : cat.adherenceRate >= 50
-                  ? "text-caramel"
-                  : "text-destructive";
-            const barPercent = Math.min(cat.adherenceRate, 100);
-            return (
-              <div key={catName} className="flex items-center gap-3">
-                <span
-                  className="text-xs sm:text-sm font-medium w-20 sm:w-28 truncate"
-                  style={color ? { color: color.badgeText } : undefined}
-                >
-                  {catName}
-                </span>
-                <div className="flex-1 h-2 rounded-full bg-muted overflow-hidden">
-                  <div
-                    className="h-full rounded-full transition-all"
-                    style={{
-                      width: `${barPercent}%`,
-                      backgroundColor: color?.border ?? "hsl(var(--primary))",
-                    }}
-                  />
-                </div>
-                <span className={`text-xs sm:text-sm font-semibold tabular-nums w-10 sm:w-12 text-right ${catRateColor}`}>
-                  {cat.adherenceRate}%
-                </span>
-              </div>
-            );
-          })}
-        </div>
-      )}
-
-      {/* XP placeholder */}
-      <div className="pt-2 border-t border-border">
-        <div className="flex items-center justify-between">
-          <span className="text-xs text-muted-foreground uppercase tracking-widest">
-            Level &amp; XP (coming soon)
-          </span>
-        </div>
-        <div className="mt-2 h-2 rounded-full bg-muted overflow-hidden">
-          <div className="h-full w-0 rounded-full bg-muted-foreground/20" />
+        <div className="text-center">
+          <p className={`text-2xl sm:text-5xl font-black tabular-nums tracking-tight ${rateColor}`}>{filteredStats.overallRate}%</p>
+          <p className="text-[9px] sm:text-xs font-bold text-muted-foreground uppercase tracking-widest mt-2">Completion Rate</p>
         </div>
       </div>
     </div>

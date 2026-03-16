@@ -117,7 +117,6 @@ export default async function DashboardPage() {
             week={weekSummary}
             month={monthSummary}
             quarter={quarterSummary}
-            categoryColorMap={categoryColorMap}
           />
         </section>
       )}
