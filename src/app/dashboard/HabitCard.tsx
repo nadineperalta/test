@@ -70,7 +70,7 @@ export function HabitCard({
     >
       {/* Top row: icon + category + pills | actions */}
       <div className="flex items-start justify-between gap-2">
-        <div className="flex items-center gap-2 min-w-0">
+        <div className="flex items-center flex-wrap gap-1.5 sm:gap-2 min-w-0">
           <CategoryIcon name={habit.category} color={color} />
           <span
             className="text-[11px] font-semibold uppercase tracking-widest shrink-0"
@@ -99,37 +99,37 @@ export function HabitCard({
           <button
             type="button"
             onClick={onEdit}
-            className="p-1.5 rounded-lg hover:bg-accent transition-colors"
+            className="p-2.5 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-lg hover:bg-accent transition-colors"
             aria-label={`Edit ${habit.name}`}
           >
-            <Pencil className="w-3.5 h-3.5 text-muted-foreground" />
+            <Pencil className="w-4 h-4 text-muted-foreground" />
           </button>
           {confirmingDelete ? (
             <div className="flex items-center gap-1">
               <button
                 type="button"
                 onClick={onArchive}
-                className="px-2 py-1 rounded-lg bg-caramel/15 text-caramel text-[11px] font-semibold"
+                className="px-2 py-1 min-h-[44px] flex items-center rounded-lg bg-caramel/15 text-caramel text-[11px] font-semibold"
               >
                 Archive
               </button>
               <button
                 type="button"
                 onClick={onDeleteCancel}
-                className="p-1 rounded-lg hover:bg-accent"
+                className="p-2.5 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-lg hover:bg-accent"
                 aria-label="Cancel archive"
               >
-                <X className="w-3.5 h-3.5" />
+                <X className="w-4 h-4" />
               </button>
             </div>
           ) : (
             <button
               type="button"
               onClick={onArchive}
-              className="p-1.5 rounded-lg hover:bg-accent transition-colors"
+              className="p-2.5 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-lg hover:bg-accent transition-colors"
               aria-label={`Archive ${habit.name}`}
             >
-              <Archive className="w-3.5 h-3.5 text-muted-foreground" />
+              <Archive className="w-4 h-4 text-muted-foreground" />
             </button>
           )}
         </div>

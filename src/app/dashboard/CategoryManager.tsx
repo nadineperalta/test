@@ -96,7 +96,7 @@ export function CategoryManager({
                     type="button"
                     onClick={() => handleRename(cat.id)}
                     disabled={loading}
-                    className="px-3 py-1.5 rounded-full bg-primary text-primary-foreground text-xs font-semibold disabled:opacity-50"
+                    className="px-4 py-2 min-h-[44px] rounded-full bg-primary text-primary-foreground text-xs font-semibold disabled:opacity-50"
                   >
                     Save
                   </button>
@@ -128,13 +128,13 @@ export function CategoryManager({
                         setEditName(cat.name);
                         setError(null);
                       }}
-                      className="p-1.5 rounded-lg hover:bg-accent transition-colors"
+                      className="p-2.5 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-lg hover:bg-accent transition-colors"
                       aria-label="Rename category"
                     >
                       <Pencil className="w-3.5 h-3.5 text-muted-foreground" />
                     </button>
                     {cat.is_system ? (
-                      <span className="p-1.5 opacity-30 cursor-not-allowed" aria-label="System categories cannot be deleted">
+                      <span className="p-2.5 min-w-[44px] min-h-[44px] flex items-center justify-center opacity-30 cursor-not-allowed" aria-label="System categories cannot be deleted">
                         <Trash2 className="w-3.5 h-3.5 text-muted-foreground" />
                       </span>
                     ) : confirmDeleteId === cat.id ? (
@@ -143,7 +143,7 @@ export function CategoryManager({
                           type="button"
                           onClick={() => handleDelete(cat.id)}
                           disabled={loading}
-                          className="px-2.5 py-1 rounded-full bg-destructive text-destructive-foreground text-[11px] font-semibold disabled:opacity-50"
+                          className="px-3 py-2 min-h-[44px] rounded-full bg-destructive text-destructive-foreground text-[11px] font-semibold disabled:opacity-50"
                         >
                           Delete
                         </button>
@@ -166,7 +166,7 @@ export function CategoryManager({
                           setConfirmDeleteId(cat.id);
                           setError(null);
                         }}
-                        className="p-1.5 rounded-lg hover:bg-accent transition-colors"
+                        className="p-2.5 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-lg hover:bg-accent transition-colors"
                         aria-label="Delete category"
                       >
                         <Trash2 className="w-3.5 h-3.5 text-muted-foreground" />

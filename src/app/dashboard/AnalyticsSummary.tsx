@@ -43,7 +43,7 @@ export function AnalyticsSummary({
             role="tab"
             aria-selected={period === p}
             onClick={() => setPeriod(p)}
-            className={`px-4 py-2 rounded-full text-sm font-semibold tracking-wide transition-shadow capitalize ${
+            className={`px-4 py-2 min-h-[44px] rounded-full text-sm font-semibold tracking-wide transition-shadow capitalize ${
               period === p
                 ? "bg-primary text-primary-foreground shadow-sm"
                 : "bg-card text-muted-foreground border border-border hover:shadow-sm"
@@ -55,7 +55,7 @@ export function AnalyticsSummary({
       </div>
 
       {/* Top summary stats */}
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-3 gap-2 sm:gap-4">
         <div className="text-center">
           <p className="text-2xl font-bold tabular-nums">{current.totalExpected}</p>
           <p className="text-xs text-muted-foreground uppercase tracking-widest mt-1">Expected</p>
@@ -88,7 +88,7 @@ export function AnalyticsSummary({
             return (
               <div key={catName} className="flex items-center gap-3">
                 <span
-                  className="text-sm font-medium w-28 truncate"
+                  className="text-xs sm:text-sm font-medium w-20 sm:w-28 truncate"
                   style={color ? { color: color.badgeText } : undefined}
                 >
                   {catName}
@@ -102,7 +102,7 @@ export function AnalyticsSummary({
                     }}
                   />
                 </div>
-                <span className={`text-sm font-semibold tabular-nums w-12 text-right ${catRateColor}`}>
+                <span className={`text-xs sm:text-sm font-semibold tabular-nums w-10 sm:w-12 text-right ${catRateColor}`}>
                   {cat.adherenceRate}%
                 </span>
               </div>

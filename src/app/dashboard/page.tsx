@@ -97,10 +97,10 @@ export default async function DashboardPage() {
   const quarterSummary = getQuarterSummary(habits, completionsForAnalytics);
 
   return (
-    <main className="min-h-screen px-6 pb-16 max-w-3xl mx-auto">
+    <main className="min-h-screen px-4 sm:px-6 pb-16 max-w-3xl mx-auto">
       {/* Page header */}
-      <header className="text-center pt-4 pb-10">
-        <h1 className="text-3xl font-bold tracking-wider text-foreground">
+      <header className="text-center pt-3 pb-6 sm:pt-4 sm:pb-10">
+        <h1 className="text-2xl sm:text-3xl font-bold tracking-wider text-foreground">
           Habit Tracker
         </h1>
         <div className="mt-4 mx-auto w-12 h-0.5 bg-primary/40 rounded-full" />

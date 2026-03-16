@@ -87,7 +87,7 @@ export function CategorySelect({
                   onChange(c.id, c.name);
                   setOpen(false);
                 }}
-                className={`flex items-center justify-between gap-2 px-3 py-2 text-sm cursor-pointer transition-colors ${
+                className={`flex items-center justify-between gap-2 px-3 py-3 min-h-[44px] text-sm cursor-pointer transition-colors ${
                   isSelected
                     ? "bg-primary/10 text-primary font-medium"
                     : "text-foreground hover:bg-accent/50"

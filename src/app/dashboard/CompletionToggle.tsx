@@ -34,7 +34,7 @@ export function CompletionToggle({
         type="button"
         onClick={handleToggle}
         disabled={loading}
-        className={`w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-full text-sm font-semibold tracking-wide transition-shadow disabled:opacity-50 ${
+        className={`w-full flex items-center justify-center gap-2 px-4 py-3 rounded-full text-sm font-semibold tracking-wide transition-shadow disabled:opacity-50 ${
           completed
             ? "bg-sage/15 text-sage border border-sage/30 hover:bg-sage/25 dark:bg-sage/20 dark:text-sage-light dark:border-sage/40"
             : "bg-primary text-primary-foreground shadow-sm hover:shadow-md"

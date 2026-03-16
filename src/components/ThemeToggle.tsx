@@ -25,18 +25,18 @@ export function ThemeToggle() {
     localStorage.setItem("theme", next ? "dark" : "light");
   }
 
-  if (!mounted) return <div className="w-10 h-10" />;
+  if (!mounted) return <div className="w-11 h-11" />;
 
   return (
     <button
       onClick={toggle}
-      className="p-2.5 rounded-xl border border-border bg-card shadow-sm hover:shadow-md transition-shadow"
+      className="p-3 rounded-xl border border-border bg-card shadow-sm hover:shadow-md transition-shadow"
       aria-label={dark ? "Switch to light mode" : "Switch to dark mode"}
     >
       {dark ? (
-        <Sun className="w-4 h-4 text-caramel" />
+        <Sun className="w-5 h-5 text-caramel" />
       ) : (
-        <Moon className="w-4 h-4 text-chestnut" />
+        <Moon className="w-5 h-5 text-chestnut" />
       )}
     </button>
   );

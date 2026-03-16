@@ -60,7 +60,7 @@ export function EditHabitCard({
   }
 
   return (
-    <div className="sm:col-span-2 bg-card border-2 border-primary/25 rounded-xl p-6 shadow-sm space-y-4">
+    <div className="sm:col-span-2 bg-card border-2 border-primary/25 rounded-xl p-4 sm:p-6 shadow-sm space-y-4">
       <div className="flex items-center justify-between">
         <span className="label-xs">Edit habit</span>
         <button

@@ -68,31 +68,33 @@ export function AddHabitCard({
       <dialog
         ref={dialogRef}
         onClose={() => setOpen(false)}
-        className="w-full max-w-lg rounded-2xl border border-border bg-background p-0 shadow-xl backdrop:bg-black/50 backdrop:backdrop-blur-sm"
+        className="m-0 w-full h-full max-w-none max-h-none rounded-none border border-border bg-background p-0 shadow-xl backdrop:bg-black/50 backdrop:backdrop-blur-sm sm:m-auto sm:max-w-lg sm:h-auto sm:max-h-[85vh] sm:rounded-2xl"
       >
-        <div className="flex items-center justify-between px-6 pt-5 pb-3">
-          <h2 className="text-sm font-semibold uppercase tracking-widest text-muted-foreground">
-            New Habit
-          </h2>
-          <button
-            type="button"
-            onClick={() => setOpen(false)}
-            className="p-1.5 rounded-lg hover:bg-accent transition-colors text-muted-foreground"
-            aria-label="Close"
-          >
-            <Plus className="w-4 h-4 rotate-45" />
-          </button>
-        </div>
-        <div className="px-6 pb-6">
-          <HabitForm
-            categories={categories}
-            createHabit={async (formData) => {
-              const result = await createHabit(formData);
-              if (!result.error) setOpen(false);
-              return result;
-            }}
-            createCategory={createCategory}
-          />
+        <div className="flex flex-col h-full sm:h-auto">
+          <div className="flex items-center justify-between px-4 sm:px-6 pt-5 pb-3 shrink-0">
+            <h2 className="text-sm font-semibold uppercase tracking-widest text-muted-foreground">
+              New Habit
+            </h2>
+            <button
+              type="button"
+              onClick={() => setOpen(false)}
+              className="p-2.5 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-lg hover:bg-accent transition-colors text-muted-foreground"
+              aria-label="Close"
+            >
+              <Plus className="w-5 h-5 rotate-45" />
+            </button>
+          </div>
+          <div className="flex-1 overflow-y-auto px-4 sm:px-6 pb-6" style={{ paddingBottom: `max(1.5rem, env(safe-area-inset-bottom))` }}>
+            <HabitForm
+              categories={categories}
+              createHabit={async (formData) => {
+                const result = await createHabit(formData);
+                if (!result.error) setOpen(false);
+                return result;
+              }}
+              createCategory={createCategory}
+            />
+          </div>
         </div>
       </dialog>
     </>

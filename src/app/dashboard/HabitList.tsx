@@ -133,7 +133,7 @@ export function HabitList({
           role="tab"
           aria-selected={filter === "due" && !selectedCategory}
           onClick={() => { setFilter("due"); setSelectedCategory(null); }}
-          className={`px-4 py-2 rounded-full text-sm font-semibold tracking-wide transition-shadow ${
+          className={`px-4 py-2 min-h-[44px] rounded-full text-sm font-semibold tracking-wide transition-shadow ${
             filter === "due" && !selectedCategory
               ? "bg-primary text-primary-foreground shadow-sm"
               : "bg-card text-muted-foreground border border-border hover:shadow-sm"
@@ -145,7 +145,7 @@ export function HabitList({
           role="tab"
           aria-selected={filter === "all" && !selectedCategory}
           onClick={() => { setFilter("all"); setSelectedCategory(null); }}
-          className={`px-4 py-2 rounded-full text-sm font-semibold tracking-wide transition-shadow ${
+          className={`px-4 py-2 min-h-[44px] rounded-full text-sm font-semibold tracking-wide transition-shadow ${
             filter === "all" && !selectedCategory
               ? "bg-secondary text-secondary-foreground shadow-sm"
               : "bg-card text-muted-foreground border border-border hover:shadow-sm"
@@ -169,7 +169,7 @@ export function HabitList({
                   setFilter("all");
                 }
               }}
-              className="px-4 py-2 rounded-full text-sm font-semibold tracking-wide transition-shadow border"
+              className="px-4 py-2 min-h-[44px] rounded-full text-sm font-semibold tracking-wide transition-shadow border"
               style={
                 color
                   ? {
@@ -188,7 +188,7 @@ export function HabitList({
           <button
             type="button"
             onClick={() => setShowArchived((s) => !s)}
-            className={`px-4 py-2 rounded-full text-sm font-semibold tracking-wide transition-shadow ${
+            className={`px-4 py-2 min-h-[44px] rounded-full text-sm font-semibold tracking-wide transition-shadow ${
               showArchived
                 ? "bg-muted text-foreground border border-border shadow-sm"
                 : "bg-card text-muted-foreground border border-border hover:shadow-sm"
@@ -278,14 +278,14 @@ export function HabitList({
                     <button
                       type="button"
                       onClick={() => handleUnarchive(habit.id)}
-                      className="px-2.5 py-1 rounded-full text-[11px] font-semibold bg-primary/10 text-primary hover:bg-primary/20"
+                      className="px-3 py-2 min-h-[44px] rounded-full text-[11px] font-semibold bg-primary/10 text-primary hover:bg-primary/20"
                     >
                       Restore
                     </button>
                     <button
                       type="button"
                       onClick={() => handleDelete(habit.id)}
-                      className="px-2.5 py-1 rounded-full text-[11px] font-semibold bg-destructive/10 text-destructive hover:bg-destructive/20"
+                      className="px-3 py-2 min-h-[44px] rounded-full text-[11px] font-semibold bg-destructive/10 text-destructive hover:bg-destructive/20"
                     >
                       Delete
                     </button>

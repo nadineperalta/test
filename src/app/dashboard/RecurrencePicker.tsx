@@ -294,7 +294,7 @@ function WeeklyOptions({
             key={d}
             type="button"
             onClick={() => toggleDay(d)}
-            className={`w-9 h-9 ${TOGGLE_BASE} ${days.includes(d) ? TOGGLE_ON : TOGGLE_OFF}`}
+            className={`w-11 h-11 ${TOGGLE_BASE} ${days.includes(d) ? TOGGLE_ON : TOGGLE_OFF}`}
           >
             {DAY_LETTERS[d]}
           </button>
