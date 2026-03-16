@@ -31,7 +31,6 @@ export function HabitCard({
   streak,
   color,
   confirmingDelete,
-  showCategoryBadge = true,
   onEdit,
   onArchive,
   onDeleteCancel,
@@ -44,7 +43,6 @@ export function HabitCard({
   streak: StreakData;
   color?: CategoryColor;
   confirmingDelete: boolean;
-  showCategoryBadge?: boolean;
   onEdit: () => void;
   onArchive: () => void;
   onDeleteCancel: () => void;
@@ -70,23 +68,33 @@ export function HabitCard({
       className={`rounded-xl shadow-sm hover:shadow-md transition-shadow p-5 flex flex-col gap-3 border ${stateClasses}`}
       style={cardStyle}
     >
-      {/* Category icon + badge + actions */}
+      {/* Top row: icon + category + pills | actions */}
       <div className="flex items-start justify-between gap-2">
-        {showCategoryBadge && (
-          <div className="flex items-center gap-2">
-            <CategoryIcon name={habit.category} color={color} />
-            <span
-              className="inline-flex items-center px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-widest rounded-full border"
-              style={
-                color
-                  ? { backgroundColor: color.badgeBg, color: color.badgeText, borderColor: color.badgeBorder }
-                  : undefined
-              }
-            >
-              {habit.category}
+        <div className="flex items-center gap-2 min-w-0">
+          <CategoryIcon name={habit.category} color={color} />
+          <span
+            className="text-[11px] font-semibold uppercase tracking-widest shrink-0"
+            style={color ? { color: color.badgeText } : undefined}
+          >
+            {habit.category}
+          </span>
+          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-slate-blue/10 text-slate-blue text-[10px] font-semibold shrink-0 dark:bg-slate-blue/20 dark:text-slate-blue-light">
+            <Star className="w-2.5 h-2.5" />
+            {habit.xp_reward} XP
+          </span>
+          {streak.currentStreak > 0 && (
+            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-caramel/10 text-caramel text-[10px] font-semibold shrink-0 dark:bg-caramel/20">
+              <Flame className="w-2.5 h-2.5" />
+              {streak.currentStreak}d
             </span>
-          </div>
-        )}
+          )}
+          {streak.longestStreak > streak.currentStreak && (
+            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-primary/10 text-primary text-[10px] font-semibold shrink-0">
+              <Trophy className="w-2.5 h-2.5" />
+              {streak.longestStreak}d
+            </span>
+          )}
+        </div>
         <div className="flex items-center gap-0.5 shrink-0">
           <button
             type="button"
@@ -127,7 +135,7 @@ export function HabitCard({
         </div>
       </div>
 
-      {/* Name + recurrence */}
+      {/* Habit name + recurrence */}
       <div>
         <p className="font-semibold text-foreground leading-snug">{habit.name}</p>
         <p className="text-xs text-muted-foreground mt-0.5 tracking-wide">
@@ -152,26 +160,6 @@ export function HabitCard({
           )}
         </div>
       )}
-
-      {/* Stats */}
-      <div className="flex items-center gap-3 flex-wrap">
-        {streak.currentStreak > 0 && (
-          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-caramel/10 text-caramel text-[11px] font-semibold dark:bg-caramel/20">
-            <Flame className="w-3 h-3" />
-            {streak.currentStreak}d streak
-          </span>
-        )}
-        {streak.longestStreak > streak.currentStreak && (
-          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-primary/10 text-primary text-[11px] font-semibold">
-            <Trophy className="w-3 h-3" />
-            Best: {streak.longestStreak}d
-          </span>
-        )}
-        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-slate-blue/10 text-slate-blue text-[11px] font-semibold dark:bg-slate-blue/20 dark:text-slate-blue-light">
-          <Star className="w-3 h-3" />
-          {habit.xp_reward} XP
-        </span>
-      </div>
 
       {/* Completion */}
       <div className="mt-auto pt-1">

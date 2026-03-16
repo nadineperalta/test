@@ -23,10 +23,10 @@ import {
   archiveHabit,
   unarchiveHabit,
 } from "./actions";
-import { HabitForm } from "./HabitForm";
 import { HabitList } from "./HabitList";
 import { CategoryManager } from "./CategoryManager";
 import { AnalyticsSummary } from "./AnalyticsSummary";
+import { AddHabitCard } from "./AddHabitCard";
 
 export const dynamic = "force-dynamic";
 
@@ -144,20 +144,13 @@ export default async function DashboardPage() {
         />
       </section>
 
-      {/* Add habit form — collapsible */}
+      {/* Add new habit card + modal */}
       <section className="mb-10">
-        <details className="bg-card border border-border rounded-xl shadow-sm overflow-hidden">
-          <summary className="px-5 py-3.5 text-xs font-semibold uppercase tracking-widest text-muted-foreground cursor-pointer hover:bg-accent/50 transition-colors">
-            Add new habit
-          </summary>
-          <div className="px-5 pb-5 pt-3">
-            <HabitForm
-              categories={categories}
-              createHabit={createHabit}
-              createCategory={createCategory}
-            />
-          </div>
-        </details>
+        <AddHabitCard
+          categories={categories}
+          createHabit={createHabit}
+          createCategory={createCategory}
+        />
       </section>
 
       {/* Category management */}

@@ -62,7 +62,7 @@ export function HabitList({
 
   // Categories that actually have active habits
   const usedCategories = categories.filter((c) =>
-    habits.some((h) => h.category_id === c.id)
+    habits.some((h) => h.category === c.name)
   );
 
   // Apply both filters
@@ -71,7 +71,10 @@ export function HabitList({
       ? habits.filter((h) => dueTodayIds.has(h.id))
       : habits;
   if (selectedCategory) {
-    displayed = displayed.filter((h) => h.category_id === selectedCategory);
+    const selectedCat = categories.find((c) => c.id === selectedCategory);
+    if (selectedCat) {
+      displayed = displayed.filter((h) => h.category === selectedCat.name);
+    }
   }
 
   async function handleArchive(habitId: string) {
@@ -124,14 +127,14 @@ export function HabitList({
 
   return (
     <div className="space-y-5">
-      {/* Filter tabs */}
+      {/* Filter tabs + category pills */}
       <div className="flex gap-2 flex-wrap" role="tablist" aria-label="Habit filters">
         <button
           role="tab"
-          aria-selected={filter === "due"}
-          onClick={() => setFilter("due")}
+          aria-selected={filter === "due" && !selectedCategory}
+          onClick={() => { setFilter("due"); setSelectedCategory(null); }}
           className={`px-4 py-2 rounded-full text-sm font-semibold tracking-wide transition-shadow ${
-            filter === "due"
+            filter === "due" && !selectedCategory
               ? "bg-primary text-primary-foreground shadow-sm"
               : "bg-card text-muted-foreground border border-border hover:shadow-sm"
           }`}
@@ -140,16 +143,47 @@ export function HabitList({
         </button>
         <button
           role="tab"
-          aria-selected={filter === "all"}
-          onClick={() => setFilter("all")}
+          aria-selected={filter === "all" && !selectedCategory}
+          onClick={() => { setFilter("all"); setSelectedCategory(null); }}
           className={`px-4 py-2 rounded-full text-sm font-semibold tracking-wide transition-shadow ${
-            filter === "all"
+            filter === "all" && !selectedCategory
               ? "bg-secondary text-secondary-foreground shadow-sm"
               : "bg-card text-muted-foreground border border-border hover:shadow-sm"
           }`}
         >
           All habits ({habits.length})
         </button>
+        {usedCategories.map((cat) => {
+          const color = categoryColorMap[cat.name];
+          const isActive = selectedCategory === cat.id;
+          return (
+            <button
+              key={cat.id}
+              role="tab"
+              aria-selected={isActive}
+              onClick={() => {
+                if (isActive) {
+                  setSelectedCategory(null);
+                } else {
+                  setSelectedCategory(cat.id);
+                  setFilter("all");
+                }
+              }}
+              className="px-4 py-2 rounded-full text-sm font-semibold tracking-wide transition-shadow border"
+              style={
+                color
+                  ? {
+                      backgroundColor: isActive ? color.badgeBg : "transparent",
+                      color: isActive ? color.badgeText : color.border,
+                      borderColor: isActive ? color.badgeBorder : "transparent",
+                    }
+                  : undefined
+              }
+            >
+              {cat.name}
+            </button>
+          );
+        })}
         {archivedHabits.length > 0 && (
           <button
             type="button"
@@ -165,48 +199,6 @@ export function HabitList({
         )}
       </div>
 
-      {/* Category filter */}
-      {usedCategories.length > 1 && (
-        <div className="flex gap-1.5 flex-wrap" role="group" aria-label="Filter by category">
-          <button
-            type="button"
-            onClick={() => setSelectedCategory(null)}
-            className={`px-3 py-1 rounded-lg text-xs font-medium tracking-wide transition-colors ${
-              selectedCategory === null
-                ? "bg-foreground/10 text-foreground border border-foreground/20"
-                : "text-muted-foreground hover:text-foreground hover:bg-accent"
-            }`}
-          >
-            All categories
-          </button>
-          {usedCategories.map((cat) => {
-            const color = categoryColorMap[cat.name];
-            const isActive = selectedCategory === cat.id;
-            return (
-              <button
-                key={cat.id}
-                type="button"
-                onClick={() =>
-                  setSelectedCategory(isActive ? null : cat.id)
-                }
-                className="px-3 py-1 rounded-lg text-xs font-medium tracking-wide transition-colors border"
-                style={
-                  color
-                    ? {
-                        backgroundColor: isActive ? color.badgeBg : "transparent",
-                        color: isActive ? color.badgeText : color.border,
-                        borderColor: isActive ? color.badgeBorder : "transparent",
-                      }
-                    : undefined
-                }
-              >
-                {cat.name}
-              </button>
-            );
-          })}
-        </div>
-      )}
-
       {/* Active habits grouped by category */}
       {displayed.length === 0 ? (
         <div className="bg-card rounded-xl border border-border shadow-sm p-8 text-center">
@@ -221,9 +213,9 @@ export function HabitList({
       ) : (
         <div className="space-y-6">
           {categories
-            .filter((cat) => displayed.some((h) => h.category_id === cat.id))
+            .filter((cat) => displayed.some((h) => h.category === cat.name))
             .map((cat) => {
-              const groupHabits = displayed.filter((h) => h.category_id === cat.id);
+              const groupHabits = displayed.filter((h) => h.category === cat.name);
               const doneCount = groupHabits.filter((h) => completedTodayIds.has(h.id)).length;
               return (
                 <div key={cat.id} className="space-y-3">
@@ -253,7 +245,6 @@ export function HabitList({
                           streak={streaks[habit.id] ?? { currentStreak: 0, longestStreak: 0 }}
                           color={categoryColorMap[habit.category]}
                           confirmingDelete={confirmArchiveId === habit.id}
-                          showCategoryBadge={false}
                           onEdit={() => setEditingId(habit.id)}
                           onArchive={() => handleArchive(habit.id)}
                           onDeleteCancel={() => setConfirmArchiveId(null)}
