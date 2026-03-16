@@ -9,6 +9,7 @@ import type { CategoryColor } from "@/lib/category-colors";
 import type { StreakData } from "@/lib/streaks";
 import { HabitCard } from "./HabitCard";
 import { EditHabitCard } from "./EditHabitCard";
+import { CategoryIcon } from "./CategoryIcon";
 
 export function HabitList({
   habits,
@@ -206,7 +207,7 @@ export function HabitList({
         </div>
       )}
 
-      {/* Active habits */}
+      {/* Active habits grouped by category */}
       {displayed.length === 0 ? (
         <div className="bg-card rounded-xl border border-border shadow-sm p-8 text-center">
           <p className="text-muted-foreground text-sm">
@@ -218,33 +219,53 @@ export function HabitList({
           </p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4" role="list">
-          {displayed.map((habit) =>
-            editingId === habit.id ? (
-              <EditHabitCard
-                key={habit.id}
-                habit={habit}
-                categories={categories}
-                onSave={(data) => handleUpdate(habit.id, data)}
-                onCancel={() => setEditingId(null)}
-              />
-            ) : (
-              <HabitCard
-                key={habit.id}
-                habit={habit}
-                completed={completedTodayIds.has(habit.id)}
-                isDueToday={dueTodayIds.has(habit.id)}
-                streak={streaks[habit.id] ?? { currentStreak: 0, longestStreak: 0 }}
-                color={categoryColorMap[habit.category]}
-                confirmingDelete={confirmArchiveId === habit.id}
-                onEdit={() => setEditingId(habit.id)}
-                onArchive={() => handleArchive(habit.id)}
-                onDeleteCancel={() => setConfirmArchiveId(null)}
-                completeHabitToday={completeHabitToday}
-                uncompleteHabitToday={uncompleteHabitToday}
-              />
-            )
-          )}
+        <div className="space-y-6">
+          {categories
+            .filter((cat) => displayed.some((h) => h.category_id === cat.id))
+            .map((cat) => {
+              const groupHabits = displayed.filter((h) => h.category_id === cat.id);
+              const doneCount = groupHabits.filter((h) => completedTodayIds.has(h.id)).length;
+              return (
+                <div key={cat.id} className="space-y-3">
+                  <div className="flex items-center gap-2">
+                    <CategoryIcon name={cat.name} color={categoryColorMap[cat.name]} />
+                    <span className="text-sm font-semibold">{cat.name}</span>
+                    <span className="text-xs text-muted-foreground ml-auto tabular-nums">
+                      {doneCount}/{groupHabits.length} done
+                    </span>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4" role="list">
+                    {groupHabits.map((habit) =>
+                      editingId === habit.id ? (
+                        <EditHabitCard
+                          key={habit.id}
+                          habit={habit}
+                          categories={categories}
+                          onSave={(data) => handleUpdate(habit.id, data)}
+                          onCancel={() => setEditingId(null)}
+                        />
+                      ) : (
+                        <HabitCard
+                          key={habit.id}
+                          habit={habit}
+                          completed={completedTodayIds.has(habit.id)}
+                          isDueToday={dueTodayIds.has(habit.id)}
+                          streak={streaks[habit.id] ?? { currentStreak: 0, longestStreak: 0 }}
+                          color={categoryColorMap[habit.category]}
+                          confirmingDelete={confirmArchiveId === habit.id}
+                          showCategoryBadge={false}
+                          onEdit={() => setEditingId(habit.id)}
+                          onArchive={() => handleArchive(habit.id)}
+                          onDeleteCancel={() => setConfirmArchiveId(null)}
+                          completeHabitToday={completeHabitToday}
+                          uncompleteHabitToday={uncompleteHabitToday}
+                        />
+                      )
+                    )}
+                  </div>
+                </div>
+              );
+            })}
         </div>
       )}
 

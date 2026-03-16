@@ -1,11 +1,16 @@
 import { createSupabaseClient } from "@/lib/supabase";
 import { getLocalDateString } from "@/lib/dates";
-import { getHabitAdherence } from "@/lib/evaluation";
 import type { CompletionRecord } from "@/lib/evaluation";
 import type { Category, Habit } from "@/types/database";
 import { isDueOn } from "@/types/recurrence";
 import { buildCategoryColorMap } from "@/lib/category-colors";
 import { calculateStreaks } from "@/lib/streaks";
+import {
+  getTodaySummary,
+  getWeekSummary,
+  getMonthSummary,
+  getQuarterSummary,
+} from "@/lib/analytics";
 import {
   createHabit,
   completeHabitToday,
@@ -21,6 +26,7 @@ import {
 import { HabitForm } from "./HabitForm";
 import { HabitList } from "./HabitList";
 import { CategoryManager } from "./CategoryManager";
+import { AnalyticsSummary } from "./AnalyticsSummary";
 
 export const dynamic = "force-dynamic";
 
@@ -83,26 +89,12 @@ export default async function DashboardPage() {
 
   const categoryColorMap = buildCategoryColorMap(categories);
 
-  // Evaluation engine: 30-day adherence for each active habit
-  const thirtyDaysAgo = new Date();
-  thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-  const evalStart = getLocalDateString(thirtyDaysAgo);
-  const evaluationResults = habits.map((habit) => {
-    const adherence = getHabitAdherence(
-      habit,
-      recentCompletions as CompletionRecord[],
-      evalStart,
-      today
-    );
-    return {
-      name: habit.name,
-      category: habit.category,
-      expected: adherence.expectedCount,
-      completed: adherence.completedCount,
-      missed: adherence.missedCount,
-      rate: Math.round(adherence.adherenceRate * 100),
-    };
-  });
+  // Compute analytics summaries
+  const completionsForAnalytics = recentCompletions as CompletionRecord[];
+  const todaySummary = getTodaySummary(habits, completionsForAnalytics);
+  const weekSummary = getWeekSummary(habits, completionsForAnalytics);
+  const monthSummary = getMonthSummary(habits, completionsForAnalytics);
+  const quarterSummary = getQuarterSummary(habits, completionsForAnalytics);
 
   return (
     <main className="min-h-screen px-6 pb-16 max-w-3xl mx-auto">
@@ -114,30 +106,24 @@ export default async function DashboardPage() {
         <div className="mt-4 mx-auto w-12 h-0.5 bg-primary/40 rounded-full" />
       </header>
 
-      {/* Add habit form */}
-      <section className="mb-10">
-        <h2 className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-4">
-          New Habit
-        </h2>
-        <HabitForm
-          categories={categories}
-          createHabit={createHabit}
-          createCategory={createCategory}
-        />
-      </section>
+      {/* Analytics summary — primary view */}
+      {habits.length > 0 && (
+        <section className="mb-10">
+          <h2 className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-4">
+            Overview
+          </h2>
+          <AnalyticsSummary
+            today={todaySummary}
+            week={weekSummary}
+            month={monthSummary}
+            quarter={quarterSummary}
+            categoryColorMap={categoryColorMap}
+          />
+        </section>
+      )}
 
-      {/* Category management */}
+      {/* Habit grid — grouped by category */}
       <section className="mb-10">
-        <CategoryManager
-          categories={categories}
-          habitCountByCategory={habitCountByCategory}
-          deleteCategory={deleteCategory}
-          renameCategory={renameCategory}
-        />
-      </section>
-
-      {/* Habit grid */}
-      <section>
         <h2 className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-4">
           Your Habits
         </h2>
@@ -158,50 +144,31 @@ export default async function DashboardPage() {
         />
       </section>
 
-      {/* Evaluation debug — temporary verification output */}
-      {habits.length > 0 && (
-        <section className="mt-10">
-          <details className="bg-card border border-border rounded-xl shadow-sm overflow-hidden">
-            <summary className="px-5 py-3.5 text-xs font-semibold uppercase tracking-widest text-muted-foreground cursor-pointer hover:bg-accent/50 transition-colors">
-              Evaluation Engine (30-day adherence)
-            </summary>
-            <div className="px-5 pb-5 pt-2 overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b border-border text-left">
-                    <th className="pb-2 pr-4 text-xs uppercase tracking-widest text-muted-foreground font-semibold">Habit</th>
-                    <th className="pb-2 pr-4 text-xs uppercase tracking-widest text-muted-foreground font-semibold">Category</th>
-                    <th className="pb-2 pr-4 text-xs uppercase tracking-widest text-muted-foreground font-semibold text-right">Expected</th>
-                    <th className="pb-2 pr-4 text-xs uppercase tracking-widest text-muted-foreground font-semibold text-right">Done</th>
-                    <th className="pb-2 pr-4 text-xs uppercase tracking-widest text-muted-foreground font-semibold text-right">Missed</th>
-                    <th className="pb-2 text-xs uppercase tracking-widest text-muted-foreground font-semibold text-right">Rate</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {evaluationResults.map((r, i) => (
-                    <tr key={i} className="border-b border-border/50 last:border-0">
-                      <td className="py-2 pr-4 font-medium">{r.name}</td>
-                      <td className="py-2 pr-4">
-                        <span className="inline-block px-2 py-0.5 text-[10px] uppercase tracking-widest font-semibold rounded-full border border-primary/25 bg-primary/10 text-primary">
-                          {r.category}
-                        </span>
-                      </td>
-                      <td className="py-2 pr-4 text-right tabular-nums">{r.expected}</td>
-                      <td className="py-2 pr-4 text-right tabular-nums">{r.completed}</td>
-                      <td className="py-2 pr-4 text-right tabular-nums">{r.missed}</td>
-                      <td className="py-2 text-right tabular-nums font-semibold">
-                        <span className={r.rate >= 80 ? "text-sage" : r.rate >= 50 ? "text-caramel" : "text-destructive"}>
-                          {r.rate}%
-                        </span>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </details>
-        </section>
-      )}
+      {/* Add habit form — collapsible */}
+      <section className="mb-10">
+        <details className="bg-card border border-border rounded-xl shadow-sm overflow-hidden">
+          <summary className="px-5 py-3.5 text-xs font-semibold uppercase tracking-widest text-muted-foreground cursor-pointer hover:bg-accent/50 transition-colors">
+            Add new habit
+          </summary>
+          <div className="px-5 pb-5 pt-3">
+            <HabitForm
+              categories={categories}
+              createHabit={createHabit}
+              createCategory={createCategory}
+            />
+          </div>
+        </details>
+      </section>
+
+      {/* Category management */}
+      <section className="mb-10">
+        <CategoryManager
+          categories={categories}
+          habitCountByCategory={habitCountByCategory}
+          deleteCategory={deleteCategory}
+          renameCategory={renameCategory}
+        />
+      </section>
     </main>
   );
 }

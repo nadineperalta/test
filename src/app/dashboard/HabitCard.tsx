@@ -31,6 +31,7 @@ export function HabitCard({
   streak,
   color,
   confirmingDelete,
+  showCategoryBadge = true,
   onEdit,
   onArchive,
   onDeleteCancel,
@@ -43,6 +44,7 @@ export function HabitCard({
   streak: StreakData;
   color?: CategoryColor;
   confirmingDelete: boolean;
+  showCategoryBadge?: boolean;
   onEdit: () => void;
   onArchive: () => void;
   onDeleteCancel: () => void;
@@ -70,19 +72,21 @@ export function HabitCard({
     >
       {/* Category icon + badge + actions */}
       <div className="flex items-start justify-between gap-2">
-        <div className="flex items-center gap-2">
-          <CategoryIcon name={habit.category} color={color} />
-          <span
-            className="inline-flex items-center px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-widest rounded-full border"
-            style={
-              color
-                ? { backgroundColor: color.badgeBg, color: color.badgeText, borderColor: color.badgeBorder }
-                : undefined
-            }
-          >
-            {habit.category}
-          </span>
-        </div>
+        {showCategoryBadge && (
+          <div className="flex items-center gap-2">
+            <CategoryIcon name={habit.category} color={color} />
+            <span
+              className="inline-flex items-center px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-widest rounded-full border"
+              style={
+                color
+                  ? { backgroundColor: color.badgeBg, color: color.badgeText, borderColor: color.badgeBorder }
+                  : undefined
+              }
+            >
+              {habit.category}
+            </span>
+          </div>
+        )}
         <div className="flex items-center gap-0.5 shrink-0">
           <button
             type="button"
