@@ -7,6 +7,7 @@ import type { Recurrence } from "@/types/recurrence";
 import type { ActionResult } from "@/types/actions";
 import type { CategoryColor } from "@/lib/category-colors";
 import type { StreakData } from "@/lib/streaks";
+import { useDevice } from "@/components/DeviceContext";
 import { HabitCard } from "./HabitCard";
 import { EditHabitCard } from "./EditHabitCard";
 import { CategoryIcon } from "./CategoryIcon";
@@ -52,6 +53,8 @@ export function HabitList({
   unarchiveHabit: (id: string) => ActionResult;
 }) {
   const router = useRouter();
+  const { mode } = useDevice();
+  const isIOS = mode === "ios";
   const [filter, setFilter] = useState<"due" | "all">("due");
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -128,12 +131,14 @@ export function HabitList({
   return (
     <div className="space-y-5">
       {/* Filter tabs + category pills */}
-      <div className="flex gap-2 flex-wrap" role="tablist" aria-label="Habit filters">
+      <div className={`flex gap-2 ${isIOS ? "overflow-x-auto pb-1 -mx-4 px-4 scrollbar-hide flex-nowrap" : "flex-wrap"}`} role="tablist" aria-label="Habit filters">
         <button
           role="tab"
           aria-selected={filter === "due" && !selectedCategory}
           onClick={() => { setFilter("due"); setSelectedCategory(null); }}
-          className={`px-4 py-2 min-h-[44px] rounded-full text-sm font-semibold tracking-wide transition-shadow ${
+          className={`px-4 py-2 min-h-[44px] rounded-full font-semibold tracking-wide transition-shadow shrink-0 ${
+            isIOS ? "text-[13px]" : "text-sm"
+          } ${
             filter === "due" && !selectedCategory
               ? "bg-primary text-primary-foreground shadow-sm"
               : "bg-card text-muted-foreground border border-border hover:shadow-sm"
@@ -145,7 +150,9 @@ export function HabitList({
           role="tab"
           aria-selected={filter === "all" && !selectedCategory}
           onClick={() => { setFilter("all"); setSelectedCategory(null); }}
-          className={`px-4 py-2 min-h-[44px] rounded-full text-sm font-semibold tracking-wide transition-shadow ${
+          className={`px-4 py-2 min-h-[44px] rounded-full font-semibold tracking-wide transition-shadow shrink-0 ${
+            isIOS ? "text-[13px]" : "text-sm"
+          } ${
             filter === "all" && !selectedCategory
               ? "bg-secondary text-secondary-foreground shadow-sm"
               : "bg-card text-muted-foreground border border-border hover:shadow-sm"
@@ -169,7 +176,9 @@ export function HabitList({
                   setFilter("all");
                 }
               }}
-              className="px-4 py-2 min-h-[44px] rounded-full text-sm font-semibold tracking-wide transition-shadow border"
+              className={`px-4 py-2 min-h-[44px] rounded-full font-semibold tracking-wide transition-shadow border shrink-0 ${
+                isIOS ? "text-[13px]" : "text-sm"
+              }`}
               style={
                 color
                   ? {
@@ -188,7 +197,9 @@ export function HabitList({
           <button
             type="button"
             onClick={() => setShowArchived((s) => !s)}
-            className={`px-4 py-2 min-h-[44px] rounded-full text-sm font-semibold tracking-wide transition-shadow ${
+            className={`px-4 py-2 min-h-[44px] rounded-full font-semibold tracking-wide transition-shadow shrink-0 ${
+              isIOS ? "text-[13px]" : "text-sm"
+            } ${
               showArchived
                 ? "bg-muted text-foreground border border-border shadow-sm"
                 : "bg-card text-muted-foreground border border-border hover:shadow-sm"
@@ -211,49 +222,83 @@ export function HabitList({
           </p>
         </div>
       ) : (
-        <div className="space-y-6">
+        <div className={isIOS ? "space-y-5" : "space-y-6"}>
           {categories
             .filter((cat) => displayed.some((h) => h.category === cat.name))
             .map((cat) => {
               const groupHabits = displayed.filter((h) => h.category === cat.name);
               const doneCount = groupHabits.filter((h) => completedTodayIds.has(h.id)).length;
               return (
-                <div key={cat.id} className="space-y-3">
+                <div key={cat.id} className={isIOS ? "space-y-1.5" : "space-y-3"}>
                   <div className="flex items-center gap-2">
                     <CategoryIcon name={cat.name} color={categoryColorMap[cat.name]} />
-                    <span className="text-sm font-semibold">{cat.name}</span>
-                    <span className="text-xs text-muted-foreground ml-auto tabular-nums">
+                    <span className={`font-semibold ${isIOS ? "text-[13px]" : "text-sm"}`}>{cat.name}</span>
+                    <span className={`text-muted-foreground ml-auto tabular-nums ${isIOS ? "text-[11px]" : "text-xs"}`}>
                       {doneCount}/{groupHabits.length} done
                     </span>
                   </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4" role="list">
-                    {groupHabits.map((habit) =>
-                      editingId === habit.id ? (
-                        <EditHabitCard
-                          key={habit.id}
-                          habit={habit}
-                          categories={categories}
-                          onSave={(data) => handleUpdate(habit.id, data)}
-                          onCancel={() => setEditingId(null)}
-                        />
-                      ) : (
-                        <HabitCard
-                          key={habit.id}
-                          habit={habit}
-                          completed={completedTodayIds.has(habit.id)}
-                          isDueToday={dueTodayIds.has(habit.id)}
-                          streak={streaks[habit.id] ?? { currentStreak: 0, longestStreak: 0 }}
-                          color={categoryColorMap[habit.category]}
-                          confirmingDelete={confirmArchiveId === habit.id}
-                          onEdit={() => setEditingId(habit.id)}
-                          onArchive={() => handleArchive(habit.id)}
-                          onDeleteCancel={() => setConfirmArchiveId(null)}
-                          completeHabitToday={completeHabitToday}
-                          uncompleteHabitToday={uncompleteHabitToday}
-                        />
-                      )
-                    )}
-                  </div>
+                  {isIOS ? (
+                    /* iOS: Grouped card container like iOS Settings sections */
+                    <div className="rounded-xl border border-border bg-card shadow-sm overflow-hidden divide-y divide-border" role="list">
+                      {groupHabits.map((habit) =>
+                        editingId === habit.id ? (
+                          <div key={habit.id} className="p-3">
+                            <EditHabitCard
+                              habit={habit}
+                              categories={categories}
+                              onSave={(data) => handleUpdate(habit.id, data)}
+                              onCancel={() => setEditingId(null)}
+                            />
+                          </div>
+                        ) : (
+                          <HabitCard
+                            key={habit.id}
+                            habit={habit}
+                            completed={completedTodayIds.has(habit.id)}
+                            isDueToday={dueTodayIds.has(habit.id)}
+                            streak={streaks[habit.id] ?? { currentStreak: 0, longestStreak: 0 }}
+                            color={categoryColorMap[habit.category]}
+                            confirmingDelete={confirmArchiveId === habit.id}
+                            onEdit={() => setEditingId(habit.id)}
+                            onArchive={() => handleArchive(habit.id)}
+                            onDeleteCancel={() => setConfirmArchiveId(null)}
+                            completeHabitToday={completeHabitToday}
+                            uncompleteHabitToday={uncompleteHabitToday}
+                          />
+                        )
+                      )}
+                    </div>
+                  ) : (
+                    /* Desktop: Grid layout */
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4" role="list">
+                      {groupHabits.map((habit) =>
+                        editingId === habit.id ? (
+                          <EditHabitCard
+                            key={habit.id}
+                            habit={habit}
+                            categories={categories}
+                            onSave={(data) => handleUpdate(habit.id, data)}
+                            onCancel={() => setEditingId(null)}
+                          />
+                        ) : (
+                          <HabitCard
+                            key={habit.id}
+                            habit={habit}
+                            completed={completedTodayIds.has(habit.id)}
+                            isDueToday={dueTodayIds.has(habit.id)}
+                            streak={streaks[habit.id] ?? { currentStreak: 0, longestStreak: 0 }}
+                            color={categoryColorMap[habit.category]}
+                            confirmingDelete={confirmArchiveId === habit.id}
+                            onEdit={() => setEditingId(habit.id)}
+                            onArchive={() => handleArchive(habit.id)}
+                            onDeleteCancel={() => setConfirmArchiveId(null)}
+                            completeHabitToday={completeHabitToday}
+                            uncompleteHabitToday={uncompleteHabitToday}
+                          />
+                        )
+                      )}
+                    </div>
+                  )}
                 </div>
               );
             })}
@@ -262,39 +307,71 @@ export function HabitList({
 
       {/* Archived habits */}
       {showArchived && archivedHabits.length > 0 && (
-        <div className="space-y-3">
+        <div className={isIOS ? "space-y-1.5" : "space-y-3"}>
           <h3 className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
             Archived
           </h3>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {archivedHabits.map((habit) => (
-              <div
-                key={habit.id}
-                className="rounded-xl border border-border bg-card/50 p-4 opacity-60 space-y-2"
-              >
-                <div className="flex items-center justify-between">
-                  <p className="font-semibold text-sm">{habit.name}</p>
-                  <div className="flex gap-1">
+          {isIOS ? (
+            <div className="rounded-xl border border-border bg-card/50 shadow-sm overflow-hidden divide-y divide-border">
+              {archivedHabits.map((habit) => (
+                <div
+                  key={habit.id}
+                  className="flex items-center justify-between gap-2 px-4 py-3 opacity-60"
+                >
+                  <div className="min-w-0">
+                    <p className="font-semibold text-[13px] truncate">{habit.name}</p>
+                    <span className="text-[10px] text-muted-foreground">{habit.category}</span>
+                  </div>
+                  <div className="flex gap-1 shrink-0">
                     <button
                       type="button"
                       onClick={() => handleUnarchive(habit.id)}
-                      className="px-3 py-2 min-h-[44px] rounded-full text-[11px] font-semibold bg-primary/10 text-primary hover:bg-primary/20"
+                      className="px-2.5 py-1.5 min-h-[44px] rounded-full text-[11px] font-semibold bg-primary/10 text-primary hover:bg-primary/20"
                     >
                       Restore
                     </button>
                     <button
                       type="button"
                       onClick={() => handleDelete(habit.id)}
-                      className="px-3 py-2 min-h-[44px] rounded-full text-[11px] font-semibold bg-destructive/10 text-destructive hover:bg-destructive/20"
+                      className="px-2.5 py-1.5 min-h-[44px] rounded-full text-[11px] font-semibold bg-destructive/10 text-destructive hover:bg-destructive/20"
                     >
                       Delete
                     </button>
                   </div>
                 </div>
-                <span className="text-[11px] text-muted-foreground">{habit.category}</span>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {archivedHabits.map((habit) => (
+                <div
+                  key={habit.id}
+                  className="rounded-xl border border-border bg-card/50 p-4 opacity-60 space-y-2"
+                >
+                  <div className="flex items-center justify-between">
+                    <p className="font-semibold text-sm">{habit.name}</p>
+                    <div className="flex gap-1">
+                      <button
+                        type="button"
+                        onClick={() => handleUnarchive(habit.id)}
+                        className="px-3 py-2 min-h-[44px] rounded-full text-[11px] font-semibold bg-primary/10 text-primary hover:bg-primary/20"
+                      >
+                        Restore
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleDelete(habit.id)}
+                        className="px-3 py-2 min-h-[44px] rounded-full text-[11px] font-semibold bg-destructive/10 text-destructive hover:bg-destructive/20"
+                      >
+                        Delete
+                      </button>
+                    </div>
+                  </div>
+                  <span className="text-[11px] text-muted-foreground">{habit.category}</span>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       )}
     </div>

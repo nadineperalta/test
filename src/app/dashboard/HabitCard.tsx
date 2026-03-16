@@ -1,11 +1,13 @@
 "use client";
 
-import { Pencil, Archive, X, Flame, Star, Clock, StickyNote, Trophy } from "lucide-react";
+import { useState } from "react";
+import { Pencil, Archive, X, Flame, Star, Clock, StickyNote, Trophy, MoreHorizontal, Check } from "lucide-react";
 import type { Habit } from "@/types/database";
 import type { ActionResult } from "@/types/actions";
 import { formatRecurrence } from "@/types/recurrence";
 import type { CategoryColor } from "@/lib/category-colors";
 import type { StreakData } from "@/lib/streaks";
+import { useDevice } from "@/components/DeviceContext";
 import { CategoryIcon } from "./CategoryIcon";
 import { CompletionToggle } from "./CompletionToggle";
 
@@ -49,6 +51,26 @@ export function HabitCard({
   completeHabitToday: (id: string) => ActionResult;
   uncompleteHabitToday: (id: string) => ActionResult;
 }) {
+  const { mode } = useDevice();
+
+  if (mode === "ios") {
+    return (
+      <IOSHabitCard
+        habit={habit}
+        completed={completed}
+        isDueToday={isDueToday}
+        streak={streak}
+        color={color}
+        confirmingDelete={confirmingDelete}
+        onEdit={onEdit}
+        onArchive={onArchive}
+        onDeleteCancel={onDeleteCancel}
+        completeHabitToday={completeHabitToday}
+        uncompleteHabitToday={uncompleteHabitToday}
+      />
+    );
+  }
+
   const stateClasses = completed
     ? "bg-sage/10 border-sage/25 dark:bg-sage/10 dark:border-sage/20"
     : isDueToday
@@ -169,6 +191,194 @@ export function HabitCard({
           completeHabitToday={completeHabitToday}
           uncompleteHabitToday={uncompleteHabitToday}
         />
+      </div>
+    </div>
+  );
+}
+
+/* ─── iOS-native compact card ─────────────────────────────────── */
+
+function IOSHabitCard({
+  habit,
+  completed,
+  isDueToday,
+  streak,
+  color,
+  confirmingDelete,
+  onEdit,
+  onArchive,
+  onDeleteCancel,
+  completeHabitToday,
+  uncompleteHabitToday,
+}: {
+  habit: Habit;
+  completed: boolean;
+  isDueToday: boolean;
+  streak: StreakData;
+  color?: CategoryColor;
+  confirmingDelete: boolean;
+  onEdit: () => void;
+  onArchive: () => void;
+  onDeleteCancel: () => void;
+  completeHabitToday: (id: string) => ActionResult;
+  uncompleteHabitToday: (id: string) => ActionResult;
+}) {
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [loading, setLoading] = useState(false);
+
+  async function handleToggle() {
+    setLoading(true);
+    const result = completed
+      ? await uncompleteHabitToday(habit.id)
+      : await completeHabitToday(habit.id);
+    setLoading(false);
+    if (result.error) console.error(result.error);
+  }
+
+  const opacity = !isDueToday && !completed ? "opacity-50" : "";
+
+  return (
+    <div
+      role="listitem"
+      className={`relative flex items-start gap-3 px-4 py-3.5 ${opacity} transition-opacity`}
+      style={color && isDueToday && !completed ? {
+        borderLeftWidth: "3px",
+        borderLeftColor: color.border,
+      } : undefined}
+    >
+      {/* Completion circle */}
+      <button
+        type="button"
+        onClick={handleToggle}
+        disabled={loading}
+        className={`shrink-0 mt-0.5 w-[26px] h-[26px] min-w-[44px] min-h-[44px] -m-[9px] flex items-center justify-center rounded-full transition-all disabled:opacity-50 ${
+          completed
+            ? "text-sage"
+            : "text-muted-foreground/40"
+        }`}
+        aria-label={completed ? "Mark as incomplete" : "Mark as complete"}
+      >
+        {loading ? (
+          <span className="w-[22px] h-[22px] rounded-full border-2 border-muted-foreground/30 border-t-primary animate-spin" />
+        ) : completed ? (
+          <span className="w-[22px] h-[22px] rounded-full bg-sage flex items-center justify-center">
+            <Check className="w-3 h-3 text-white" strokeWidth={3} />
+          </span>
+        ) : (
+          <span
+            className="w-[22px] h-[22px] rounded-full border-2 transition-colors hover:border-primary/60"
+            style={color ? { borderColor: color.border + "80" } : undefined}
+          />
+        )}
+      </button>
+
+      {/* Content */}
+      <div className="flex-1 min-w-0 pl-1">
+        {/* Habit name */}
+        <p className={`text-[15px] font-semibold leading-tight transition-colors ${
+          completed ? "text-muted-foreground line-through decoration-sage/50" : "text-foreground"
+        }`}>
+          {habit.name}
+        </p>
+
+        {/* Metadata row */}
+        <div className="flex items-center gap-1.5 mt-1 flex-wrap">
+          <span className="text-[11px] text-muted-foreground tracking-wide">
+            {recurrenceDisplay(habit)}
+          </span>
+          {streak.currentStreak > 0 && (
+            <span className="inline-flex items-center gap-0.5 text-[10px] font-semibold text-caramel">
+              <Flame className="w-2.5 h-2.5" />
+              {streak.currentStreak}d
+            </span>
+          )}
+          {streak.longestStreak > streak.currentStreak && (
+            <span className="inline-flex items-center gap-0.5 text-[10px] font-semibold text-primary">
+              <Trophy className="w-2.5 h-2.5" />
+              {streak.longestStreak}d
+            </span>
+          )}
+          <span className="inline-flex items-center gap-0.5 text-[10px] font-semibold text-slate-blue dark:text-slate-blue-light">
+            <Star className="w-2.5 h-2.5" />
+            {habit.xp_reward}
+          </span>
+        </div>
+
+        {/* Time / note */}
+        {(habit.time_of_day || habit.note) && (
+          <div className="flex items-center gap-2 mt-1">
+            {habit.time_of_day && (
+              <span className="inline-flex items-center gap-0.5 text-[10px] text-muted-foreground">
+                <Clock className="w-2.5 h-2.5" />
+                {TIME_LABELS[habit.time_of_day] ?? habit.time_of_day}
+              </span>
+            )}
+            {habit.note && (
+              <span className="text-[10px] text-muted-foreground truncate">
+                {habit.note}
+              </span>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* Actions menu */}
+      <div className="shrink-0 relative">
+        {confirmingDelete ? (
+          <div className="flex items-center gap-1">
+            <button
+              type="button"
+              onClick={onArchive}
+              className="px-2.5 py-1.5 min-h-[44px] flex items-center rounded-lg bg-caramel/15 text-caramel text-[11px] font-semibold"
+            >
+              Archive
+            </button>
+            <button
+              type="button"
+              onClick={onDeleteCancel}
+              className="p-2 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-lg hover:bg-accent"
+              aria-label="Cancel"
+            >
+              <X className="w-3.5 h-3.5 text-muted-foreground" />
+            </button>
+          </div>
+        ) : menuOpen ? (
+          <div className="flex items-center gap-0.5 animate-in fade-in slide-in-from-right-2 duration-150">
+            <button
+              type="button"
+              onClick={() => { onEdit(); setMenuOpen(false); }}
+              className="p-2 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-lg hover:bg-accent transition-colors"
+              aria-label="Edit"
+            >
+              <Pencil className="w-3.5 h-3.5 text-muted-foreground" />
+            </button>
+            <button
+              type="button"
+              onClick={() => { onArchive(); setMenuOpen(false); }}
+              className="p-2 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-lg hover:bg-accent transition-colors"
+              aria-label="Archive"
+            >
+              <Archive className="w-3.5 h-3.5 text-muted-foreground" />
+            </button>
+            <button
+              type="button"
+              onClick={() => setMenuOpen(false)}
+              className="p-2 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-lg hover:bg-accent transition-colors"
+              aria-label="Close menu"
+            >
+              <X className="w-3.5 h-3.5 text-muted-foreground" />
+            </button>
+          </div>
+        ) : (
+          <button
+            type="button"
+            onClick={() => setMenuOpen(true)}
+            className="p-2 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-lg hover:bg-accent transition-colors"
+            aria-label="More actions"
+          >
+            <MoreHorizontal className="w-4 h-4 text-muted-foreground" />
+          </button>
+        )}
       </div>
     </div>
   );
